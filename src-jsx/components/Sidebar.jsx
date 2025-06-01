@@ -52,7 +52,7 @@ export const Sidebar = ({
           onClick={onImportJson}
           variant="outline"
           size="sm"
-          className="w-full justify-start text-slate-300 border-slate-600 hover:bg-slate-800"
+          className="w-full justify-start text-black border-white-600 hover:bg-orange-600 hover:text-white"
         >
           <Upload size={16} className="mr-2" />
           Import JSON
@@ -61,7 +61,7 @@ export const Sidebar = ({
           onClick={onExportJson}
           variant="outline"
           size="sm"
-          className="w-full justify-start text-slate-300 border-slate-600 hover:bg-slate-800"
+          className="w-full justify-start text-black border-white-600 hover:bg-orange-600 hover:text-white"
         >
           <Download size={16} className="mr-2" />
           Export JSON
