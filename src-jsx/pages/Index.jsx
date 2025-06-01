@@ -1,0 +1,177 @@
+import { useState, useRef } from "react";
+import { Sidebar } from "@/components/Sidebar";
+import { Dashboard } from "@/components/Dashboard";
+import { OrderList } from "@/components/OrderList";
+import { OrderForm } from "@/components/OrderForm";
+import { useOrders } from "@/hooks/useOrders";
+import {
+  exportToExcel,
+  importFromExcel,
+  downloadSampleExcel,
+} from "@/utils/excelUtils";
+import { useToast } from "@/hooks/use-toast";
+
+const Index = () => {
+  const [currentPage, setCurrentPage] = useState("dashboard");
+  const [editingOrder, setEditingOrder] = useState(null);
+  const fileInputRef = useRef(null);
+  const { orders, addOrder, updateOrder, deleteOrder, importOrders } =
+    useOrders();
+  const { toast } = useToast();
+
+  const handleEditOrder = (order) => {
+    setEditingOrder(order);
+    setCurrentPage("edit-order");
+  };
+
+  const handleDeleteOrder = (id) => {
+    if (window.confirm("Are you sure you want to delete this order?")) {
+      deleteOrder(id);
+      toast({
+        title: "Success",
+        description: "Order deleted successfully",
+      });
+    }
+  };
+
+  const handleFormSubmit = (orderData) => {
+    if (editingOrder) {
+      updateOrder(editingOrder.id, orderData);
+      toast({
+        title: "Success",
+        description: "Order updated successfully",
+      });
+    } else {
+      addOrder(orderData);
+      toast({
+        title: "Success",
+        description: "Order created successfully",
+      });
+    }
+    setEditingOrder(null);
+    setCurrentPage("orders");
+  };
+
+  const handleFormCancel = () => {
+    setEditingOrder(null);
+    setCurrentPage("orders");
+  };
+
+  const handleExportExcel = () => {
+    exportToExcel(orders);
+    toast({
+      title: "Success",
+      description: "Orders exported to Excel successfully",
+    });
+  };
+
+  const handleImportExcel = () => {
+    fileInputRef.current?.click();
+  };
+
+  const handleFileSelect = async (event) => {
+    const file = event.target.files?.[0];
+    if (file) {
+      try {
+        const importedOrders = await importFromExcel(file);
+        importOrders(importedOrders);
+        toast({
+          title: "Success",
+          description: `${importedOrders.length} orders imported successfully`,
+        });
+      } catch (error) {
+        toast({
+          title: "Error",
+          description: "Failed to import Excel file",
+          variant: "destructive",
+        });
+      }
+    }
+    // Reset file input
+    if (fileInputRef.current) {
+      fileInputRef.current.value = "";
+    }
+  };
+
+  const handleDownloadSample = () => {
+    downloadSampleExcel();
+    toast({
+      title: "Success",
+      description: "Sample Excel file downloaded",
+    });
+  };
+
+  const renderCurrentPage = () => {
+    switch (currentPage) {
+      case "dashboard":
+        return <Dashboard orders={orders} />;
+      case "orders":
+        return (
+          <OrderList
+            orders={orders}
+            onEditOrder={handleEditOrder}
+            onDeleteOrder={handleDeleteOrder}
+          />
+        );
+      case "add-order":
+        return (
+          <OrderForm onSubmit={handleFormSubmit} onCancel={handleFormCancel} />
+        );
+      case "edit-order":
+        return (
+          <OrderForm
+            order={editingOrder || undefined}
+            onSubmit={handleFormSubmit}
+            onCancel={handleFormCancel}
+          />
+        );
+      default:
+        return <Dashboard orders={orders} />;
+    }
+  };
+
+  const getPageTitle = () => {
+    switch (currentPage) {
+      case "dashboard":
+        return "Dashboard";
+      case "orders":
+        return "All Orders";
+      case "add-order":
+        return "Add New Order";
+      case "edit-order":
+        return "Edit Order";
+      default:
+        return "Dashboard";
+    }
+  };
+
+  return (
+    <div className="flex h-screen bg-gray-50">
+      <Sidebar
+        currentPage={currentPage}
+        onPageChange={setCurrentPage}
+        onImportExcel={handleImportExcel}
+        onExportExcel={handleExportExcel}
+        onDownloadSample={handleDownloadSample}
+      />
+
+      <div className="flex-1 flex flex-col overflow-hidden">
+        <header className="bg-white shadow-sm border-b px-6 py-4">
+          <h1 className="text-2xl font-bold text-gray-900">{getPageTitle()}</h1>
+        </header>
+
+        <main className="flex-1 overflow-auto p-6">{renderCurrentPage()}</main>
+      </div>
+
+      <input
+        ref={fileInputRef}
+        type="file"
+        accept=".xlsx,.xls"
+        onChange={handleFileSelect}
+        style={{ display: "none" }}
+      />
+    </div>
+  );
+};
+
+export default Index;
