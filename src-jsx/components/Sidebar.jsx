@@ -5,9 +5,8 @@ import { Button } from "@/components/ui/button";
 export const Sidebar = ({
   currentPage,
   onPageChange,
-  onImportExcel,
-  onExportExcel,
-  onDownloadSample,
+  onImportJson,
+  onExportJson,
 }) => {
   const menuItems = [
     { id: "dashboard", label: "Dashboard", icon: Home },
@@ -50,31 +49,22 @@ export const Sidebar = ({
 
       <div className="p-4 border-t border-slate-700 space-y-2">
         <Button
-          onClick={onExportExcel}
-          variant="outline"
-          size="sm"
-          className="w-full justify-start text-slate-300 border-slate-600 hover:bg-slate-800"
-        >
-          <Download size={16} className="mr-2" />
-          Export Excel
-        </Button>
-        <Button
-          onClick={onImportExcel}
+          onClick={onImportJson}
           variant="outline"
           size="sm"
           className="w-full justify-start text-slate-300 border-slate-600 hover:bg-slate-800"
         >
           <Upload size={16} className="mr-2" />
-          Import Excel
+          Import JSON
         </Button>
         <Button
-          onClick={onDownloadSample}
+          onClick={onExportJson}
           variant="outline"
           size="sm"
           className="w-full justify-start text-slate-300 border-slate-600 hover:bg-slate-800"
         >
           <Download size={16} className="mr-2" />
-          Sample File
+          Export JSON
         </Button>
       </div>
     </div>

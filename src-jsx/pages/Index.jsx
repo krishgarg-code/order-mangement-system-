@@ -4,11 +4,6 @@ import { Dashboard } from "@/components/Dashboard";
 import { OrderList } from "@/components/OrderList";
 import { OrderForm } from "@/components/OrderForm";
 import { useOrders } from "@/hooks/useOrders";
-import {
-  exportToExcel,
-  importFromExcel,
-  downloadSampleExcel,
-} from "@/utils/excelUtils";
 import { useToast } from "@/hooks/use-toast";
 
 const Index = () => {
@@ -57,48 +52,36 @@ const Index = () => {
     setCurrentPage("orders");
   };
 
-  const handleExportExcel = () => {
-    exportToExcel(orders);
-    toast({
-      title: "Success",
-      description: "Orders exported to Excel successfully",
-    });
-  };
-
-  const handleImportExcel = () => {
+  const handleImportJson = () => {
     fileInputRef.current?.click();
   };
 
   const handleFileSelect = async (event) => {
     const file = event.target.files?.[0];
     if (file) {
-      try {
-        const importedOrders = await importFromExcel(file);
-        importOrders(importedOrders);
-        toast({
-          title: "Success",
-          description: `${importedOrders.length} orders imported successfully`,
-        });
-      } catch (error) {
-        toast({
-          title: "Error",
-          description: "Failed to import Excel file",
-          variant: "destructive",
-        });
-      }
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        try {
+          const importedOrders = JSON.parse(e.target?.result);
+          importOrders(importedOrders);
+          toast({
+            title: "Success",
+            description: `${importedOrders.length} orders imported successfully`,
+          });
+        } catch (error) {
+          toast({
+            title: "Error",
+            description: "Failed to import JSON file",
+            variant: "destructive",
+          });
+        }
+      };
+      reader.readAsText(file);
     }
     // Reset file input
     if (fileInputRef.current) {
       fileInputRef.current.value = "";
     }
-  };
-
-  const handleDownloadSample = () => {
-    downloadSampleExcel();
-    toast({
-      title: "Success",
-      description: "Sample Excel file downloaded",
-    });
   };
 
   const renderCurrentPage = () => {
@@ -150,9 +133,7 @@ const Index = () => {
       <Sidebar
         currentPage={currentPage}
         onPageChange={setCurrentPage}
-        onImportExcel={handleImportExcel}
-        onExportExcel={handleExportExcel}
-        onDownloadSample={handleDownloadSample}
+        onImportJson={handleImportJson}
       />
 
       <div className="flex-1 flex flex-col overflow-hidden">
@@ -166,7 +147,7 @@ const Index = () => {
       <input
         ref={fileInputRef}
         type="file"
-        accept=".xlsx,.xls"
+        accept=".json"
         onChange={handleFileSelect}
         style={{ display: "none" }}
       />

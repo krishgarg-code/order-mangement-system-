@@ -118,21 +118,9 @@ export const Dashboard = ({ orders }) => {
                     <p className="font-medium">{order.orderNumber}</p>
                     <p className="text-sm text-gray-600">{order.companyName}</p>
                   </div>
-                  <Badge
-                    className={
-                      order.status === "pending"
-                        ? "bg-yellow-100 text-yellow-800"
-                        : order.status === "casting"
-                          ? "bg-blue-100 text-blue-800"
-                          : order.status === "melting"
-                            ? "bg-orange-100 text-orange-800"
-                            : order.status === "done"
-                              ? "bg-green-100 text-green-800"
-                              : "bg-emerald-100 text-emerald-800"
-                    }
-                  >
-                    {order.status}
-                  </Badge>
+                  <div className="text-sm text-gray-600">
+                    {order.rolls ? `${order.rolls.length} Rolls` : '0 Rolls'}
+                  </div>
                 </div>
               ))}
               {recentOrders.length === 0 && (

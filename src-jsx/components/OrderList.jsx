@@ -11,10 +11,10 @@ import {
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { StatusBadge } from "./StatusBadge";
 import { Edit, Trash2, Search, ChevronDown, ChevronUp } from "lucide-react";
-import * as XLSX from 'xlsx';
 import { saveAs } from 'file-saver';
 
 export const OrderList = ({ orders, onEditOrder, onDeleteOrder }) => {
+  console.log("Orders data received by OrderList:", orders);
   const [searchTerm, setSearchTerm] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
   const [rollStatusFilter, setRollStatusFilter] = useState("all");
@@ -42,7 +42,10 @@ export const OrderList = ({ orders, onEditOrder, onDeleteOrder }) => {
       companyName.includes(searchTermLower) ||
       orderNumber.includes(searchTermLower) ||
       broker.includes(searchTermLower) ||
-      (order.rolls && order.rolls.some(roll => roll?.rollNumber?.toLowerCase().includes(searchTermLower)));
+      (order.rolls && order.rolls.some(roll => 
+        roll?.rollNumber?.toLowerCase().includes(searchTermLower) ||
+        roll?.machining?.toLowerCase().includes(searchTermLower)
+      ));
 
     const matchesStatus = statusFilter === "all" || (order.rolls && order.rolls.some(r => r?.status === statusFilter));
     const matchesRollStatus = rollStatusFilter === "all" || (order.rolls && order.rolls.some(r => r?.status === rollStatusFilter));
@@ -57,52 +60,10 @@ export const OrderList = ({ orders, onEditOrder, onDeleteOrder }) => {
   const totalPages = Math.ceil(sortedOrders.length / ORDERS_PER_PAGE);
   const paginatedOrders = sortedOrders.slice((page - 1) * ORDERS_PER_PAGE, page * ORDERS_PER_PAGE);
 
-  const handleExportExcel = () => {
-    const data = [];
-
-    // Add a single header row at the very top
-    data.push(['Order Number', 'Company Name', 'Broker', 'Order Date', 'Expected Delivery']);
-    data.push(['', '', '', '', '', 'Roll Number', 'Hardness', 'Grade', 'Description', 'Dimensions', 'Status', 'Machining']); // Header for roll details, aligned with roll columns
-
-    // Add data rows
-    orders.forEach(order => {
-      // Main order details row
-      data.push([
-        order.orderNumber || '',
-        order.companyName || '',
-        order.broker || '',
-        order.orderDate ? new Date(order.orderDate).toLocaleDateString() : '-',
-        order.expectedDelivery ? new Date(order.expectedDelivery).toLocaleDateString() : '-',
-      ]);
-
-      // Add rows for each roll
-      if (order.rolls && order.rolls.length > 0) {
-        order.rolls.forEach(roll => {
-          data.push([
-            '', '', '', '', '', // Empty cells to align with main order columns
-            roll.rollNumber || '',
-            roll.hardness || '',
-            roll.grade || '',
-            roll.rollDescription || '',
-            roll.dimensions || '',
-            roll.status || '',
-            roll.machining || '',
-          ]);
-        });
-      } else {
-        // Add an empty row if no rolls, or just move to the next order
-        data.push(['', '', '', '', '', '', '', '', '', '', '', '']); // Empty row to show separation
-      }
-    });
-
-    const ws = XLSX.utils.aoa_to_sheet(data);
-    const wb = XLSX.utils.book_new();
-    XLSX.utils.book_append_sheet(wb, ws, 'Orders');
-
-    // Generate and save the file
-    const excelBuffer = XLSX.write(wb, { bookType: 'xlsx', type: 'array' });
-    const blob = new Blob([excelBuffer], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet;charset=UTF-8' });
-    saveAs(blob, 'orders.xlsx');
+  const handleExportJson = () => {
+    const jsonString = JSON.stringify(orders, null, 2);
+    const blob = new Blob([jsonString], { type: 'application/json' });
+    saveAs(blob, 'orders.json');
   };
 
   return (
@@ -165,9 +126,9 @@ export const OrderList = ({ orders, onEditOrder, onDeleteOrder }) => {
       </div>
 
       {/* Export Button */}
-      <div className="flex justify-end">
-        <Button onClick={handleExportExcel} variant="outline">
-          Export to Excel
+      <div className="flex justify-end space-x-2">
+        <Button onClick={handleExportJson} variant="outline">
+          Export to JSON
         </Button>
       </div>
 
