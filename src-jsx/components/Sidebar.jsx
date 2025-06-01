@@ -55,7 +55,7 @@ export const Sidebar = ({
           className="w-full justify-start text-black border-white-600 hover:bg-orange-600 hover:text-white"
         >
           <Upload size={16} className="mr-2" />
-          Import JSON
+          Import Data
         </Button>
         <Button
           onClick={onExportJson}
@@ -64,7 +64,7 @@ export const Sidebar = ({
           className="w-full justify-start text-black border-white-600 hover:bg-orange-600 hover:text-white"
         >
           <Download size={16} className="mr-2" />
-          Export JSON
+          Export Data
         </Button>
       </div>
     </div>

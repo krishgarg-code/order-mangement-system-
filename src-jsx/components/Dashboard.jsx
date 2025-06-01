@@ -51,7 +51,7 @@ export const Dashboard = ({ orders }) => {
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">{stats.inProgress}</div>
-            <p className="text-xs text-muted-foreground">Casting & Melting</p>
+            
           </CardContent>
         </Card>
 
