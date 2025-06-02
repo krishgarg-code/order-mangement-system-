@@ -135,7 +135,7 @@ export const OrderList = ({ orders, onEditOrder, onDeleteOrder }) => {
       {/* Orders */}
       <div className="grid gap-4">
         {paginatedOrders.map((order) => (
-          <Card key={order.id} className="hover:shadow-md transition-shadow">
+          <Card key={order._id} className="hover:shadow-md transition-shadow">
             <CardHeader className="pb-4">
               <div className="flex justify-between items-start">
                 <div>
@@ -151,9 +151,9 @@ export const OrderList = ({ orders, onEditOrder, onDeleteOrder }) => {
                   <Button
                     size="sm"
                     variant="outline"
-                    onClick={() => setExpanded((prev) => ({ ...prev, [order.id]: !prev[order.id] }))}
+                    onClick={() => setExpanded((prev) => ({ ...prev, [order._id]: !prev[order._id] }))}
                   >
-                    {expanded[order.id] ? <ChevronUp size={16} /> : <ChevronDown size={16} />} Rolls
+                    {expanded[order._id] ? <ChevronUp size={16} /> : <ChevronDown size={16} />} Rolls
                   </Button>
                   <Button
                     size="sm"
@@ -165,7 +165,7 @@ export const OrderList = ({ orders, onEditOrder, onDeleteOrder }) => {
                   <Button
                     size="sm"
                     variant="outline"
-                    onClick={() => onDeleteOrder(order.id)}
+                    onClick={() => onDeleteOrder(order._id)}
                     className="text-red-600 hover:text-red-700"
                   >
                     <Trash2 size={16} />
@@ -173,7 +173,7 @@ export const OrderList = ({ orders, onEditOrder, onDeleteOrder }) => {
                 </div>
               </div>
             </CardHeader>
-            {expanded[order.id] && (
+            {expanded[order._id] && (
               <CardContent>
                 <div className="overflow-x-auto">
                   <table className="min-w-full text-sm border">

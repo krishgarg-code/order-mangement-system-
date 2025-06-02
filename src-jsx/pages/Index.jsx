@@ -10,7 +10,7 @@ const Index = () => {
   const [currentPage, setCurrentPage] = useState("dashboard");
   const [editingOrder, setEditingOrder] = useState(null);
   const fileInputRef = useRef(null);
-  const { orders, addOrder, updateOrder, deleteOrder, importOrders } =
+  const { orders, addOrder, updateOrder, deleteOrder, importOrders, exportOrders } =
     useOrders();
   const { toast } = useToast();
 
@@ -134,6 +134,7 @@ const Index = () => {
         currentPage={currentPage}
         onPageChange={setCurrentPage}
         onImportJson={handleImportJson}
+        onExportJson={exportOrders}
       />
 
       <div className="flex-1 flex flex-col overflow-hidden">
