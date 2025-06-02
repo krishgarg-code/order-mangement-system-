@@ -1,4 +1,4 @@
-const API_URL = 'http://localhost:3000/api';
+const API_URL = import.meta.env.VITE_API_URL || 'https://rolling-mill-orders-backend.vercel.app/api';
 
 export const api = {
   // Get all orders
