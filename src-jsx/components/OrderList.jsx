@@ -180,6 +180,7 @@ export const OrderList = ({ orders, onEditOrder, onDeleteOrder }) => {
                     <thead>
                       <tr className="bg-gray-100">
                         <th className="p-2 border">Roll Number</th>
+                        <th className="p-2 border">Hardness</th>
                         <th className="p-2 border">Grade</th>
                         <th className="p-2 border">Description</th>
                         <th className="p-2 border">Dimensions</th>
@@ -191,6 +192,7 @@ export const OrderList = ({ orders, onEditOrder, onDeleteOrder }) => {
                       {order.rolls && order.rolls.map((roll, idx) => (
                         <tr key={idx}>
                           <td className="p-2 border">{roll.rollNumber}</td>
+                          <td className="p-2 border">{roll.hardness}</td>
                           <td className="p-2 border">{roll.grade}</td>
                           <td className="p-2 border">{roll.rollDescription}</td>
                           <td className="p-2 border">{roll.dimensions}</td>
