@@ -67,9 +67,57 @@ export const OrderForm = ({ order, onSubmit, onCancel }) => {
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    onSubmit({
+    
+    // Format dates to ISO string and ensure they're valid
+    const formattedData = {
       ...formData,
-    });
+      orderDate: formData.orderDate ? new Date(formData.orderDate).toISOString() : null,
+      expectedDelivery: formData.expectedDelivery ? new Date(formData.expectedDelivery).toISOString() : null,
+      quantity: parseInt(formData.quantity) || 1
+    };
+
+    // Validate required fields
+    if (!formattedData.companyName) {
+      alert('Please enter company name');
+      return;
+    }
+
+    if (!formattedData.orderDate) {
+      alert('Please select order date');
+      return;
+    }
+
+    if (!formattedData.expectedDelivery) {
+      alert('Please select expected delivery date');
+      return;
+    }
+
+    // Validate rolls
+    if (!formattedData.rolls || formattedData.rolls.length === 0) {
+      alert('At least one roll is required');
+      return;
+    }
+
+    // Validate each roll
+    const invalidRolls = formattedData.rolls.filter(roll => !roll.rollNumber || !roll.hardness);
+    if (invalidRolls.length > 0) {
+      alert('All rolls must have a roll number and hardness');
+      return;
+    }
+
+    // Remove empty fields from rolls
+    formattedData.rolls = formattedData.rolls.map(roll => ({
+      rollNumber: roll.rollNumber,
+      hardness: roll.hardness,
+      machining: roll.machining || '',
+      rollDescription: roll.rollDescription || '',
+      dimensions: roll.dimensions || '',
+      status: roll.status || 'Pending',
+      grade: roll.grade || ''
+    }));
+
+    console.log('Submitting order data:', formattedData);
+    onSubmit(formattedData);
   };
 
   const handleQuantityChange = (value) => {

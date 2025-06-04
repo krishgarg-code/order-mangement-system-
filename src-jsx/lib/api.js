@@ -5,10 +5,11 @@ export const api = {
   getOrders: async () => {
     try {
       const response = await fetch(`${API_URL}/orders`);
+      const data = await response.json();
       if (!response.ok) {
-        throw new Error('Failed to fetch orders');
+        throw new Error(data.message || 'Failed to fetch orders');
       }
-      return response.json();
+      return data;
     } catch (error) {
       console.error('Error fetching orders:', error);
       throw error;
@@ -18,6 +19,7 @@ export const api = {
   // Create a new order
   createOrder: async (orderData) => {
     try {
+      console.log('Sending order data:', orderData);
       const response = await fetch(`${API_URL}/orders`, {
         method: 'POST',
         headers: {
@@ -25,10 +27,12 @@ export const api = {
         },
         body: JSON.stringify(orderData),
       });
+      const data = await response.json();
       if (!response.ok) {
-        throw new Error('Failed to create order');
+        throw new Error(data.message || 'Failed to create order');
       }
-      return response.json();
+      console.log('Order created successfully:', data);
+      return data;
     } catch (error) {
       console.error('Error creating order:', error);
       throw error;
@@ -38,6 +42,7 @@ export const api = {
   // Update an order
   updateOrder: async (id, orderData) => {
     try {
+      console.log('Updating order:', id, orderData);
       const response = await fetch(`${API_URL}/orders/${id}`, {
         method: 'PUT',
         headers: {
@@ -45,10 +50,12 @@ export const api = {
         },
         body: JSON.stringify(orderData),
       });
+      const data = await response.json();
       if (!response.ok) {
-        throw new Error('Failed to update order');
+        throw new Error(data.message || 'Failed to update order');
       }
-      return response.json();
+      console.log('Order updated successfully:', data);
+      return data;
     } catch (error) {
       console.error('Error updating order:', error);
       throw error;
@@ -58,13 +65,16 @@ export const api = {
   // Delete an order
   deleteOrder: async (id) => {
     try {
+      console.log('Deleting order:', id);
       const response = await fetch(`${API_URL}/orders/${id}`, {
         method: 'DELETE',
       });
+      const data = await response.json();
       if (!response.ok) {
-        throw new Error('Failed to delete order');
+        throw new Error(data.message || 'Failed to delete order');
       }
-      return response.json();
+      console.log('Order deleted successfully:', data);
+      return data;
     } catch (error) {
       console.error('Error deleting order:', error);
       throw error;

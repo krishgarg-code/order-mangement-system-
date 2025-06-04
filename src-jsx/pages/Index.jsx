@@ -29,22 +29,31 @@ const Index = () => {
     }
   };
 
-  const handleFormSubmit = (orderData) => {
-    if (editingOrder) {
-      updateOrder(editingOrder.id, orderData);
+  const handleFormSubmit = async (orderData) => {
+    try {
+      if (editingOrder) {
+        await updateOrder(editingOrder._id, orderData);
+        toast({
+          title: "Success",
+          description: "Order updated successfully",
+        });
+      } else {
+        await addOrder(orderData);
+        toast({
+          title: "Success",
+          description: "Order created successfully",
+        });
+      }
+      setEditingOrder(null);
+      setCurrentPage("orders");
+    } catch (error) {
+      console.error('Error submitting form:', error);
       toast({
-        title: "Success",
-        description: "Order updated successfully",
-      });
-    } else {
-      addOrder(orderData);
-      toast({
-        title: "Success",
-        description: "Order created successfully",
+        title: "Error",
+        description: error.message || "Failed to save order",
+        variant: "destructive",
       });
     }
-    setEditingOrder(null);
-    setCurrentPage("orders");
   };
 
   const handleFormCancel = () => {
