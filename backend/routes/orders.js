@@ -1,0 +1,127 @@
+import express from 'express';
+import Order from '../models/Order.js';
+
+const router = express.Router();
+
+// Error handler wrapper
+const asyncHandler = (fn) => (req, res, next) => {
+  Promise.resolve(fn(req, res, next)).catch(next);
+};
+
+// Get all orders with pagination and filtering
+router.get('/', asyncHandler(async (req, res) => {
+  try {
+    const page = parseInt(req.query.page) || 1;
+    const limit = parseInt(req.query.limit) || 10;
+    const skip = (page - 1) * limit;
+
+    const query = {};
+    
+    // Add filters if provided
+    if (req.query.status) {
+      query['rolls.status'] = req.query.status;
+    }
+    if (req.query.grade) {
+      query['rolls.grade'] = req.query.grade;
+    }
+    if (req.query.companyName) {
+      query.companyName = new RegExp(req.query.companyName, 'i');
+    }
+
+    const [orders, total] = await Promise.all([
+      Order.find(query)
+        .sort({ createdAt: -1 })
+        .skip(skip)
+        .limit(limit),
+      Order.countDocuments(query)
+    ]);
+
+    res.json({
+      orders: orders || [],
+      pagination: {
+        total: total || 0,
+        page,
+        pages: Math.ceil((total || 0) / limit)
+      }
+    });
+  } catch (error) {
+    console.error('Error fetching orders:', error);
+    res.status(500).json({
+      message: 'Failed to fetch orders',
+      error: error.message
+    });
+  }
+}));
+
+// Get overdue orders
+router.get('/overdue', asyncHandler(async (req, res) => {
+  const overdueOrders = await Order.findOverdue();
+  res.json(overdueOrders);
+}));
+
+// Create a new order
+router.post('/', asyncHandler(async (req, res) => {
+  const order = new Order(req.body);
+  const savedOrder = await order.save();
+  res.status(201).json(savedOrder);
+}));
+
+// Update an order
+router.put('/:id', asyncHandler(async (req, res) => {
+  const order = await Order.findByIdAndUpdate(
+    req.params.id,
+    req.body,
+    { 
+      new: true, 
+      runValidators: true,
+      context: 'query'
+    }
+  );
+  
+  if (!order) {
+    const error = new Error('Order not found');
+    error.statusCode = 404;
+    throw error;
+  }
+  
+  res.json(order);
+}));
+
+// Delete an order
+router.delete('/:id', asyncHandler(async (req, res) => {
+  const order = await Order.findByIdAndDelete(req.params.id);
+  
+  if (!order) {
+    const error = new Error('Order not found');
+    error.statusCode = 404;
+    throw error;
+  }
+  
+  res.json({ message: 'Order deleted successfully' });
+}));
+
+// Get order statistics
+router.get('/stats', asyncHandler(async (req, res) => {
+  const stats = await Order.aggregate([
+    {
+      $unwind: '$rolls'
+    },
+    {
+      $group: {
+        _id: '$rolls.status',
+        count: { $sum: 1 }
+      }
+    }
+  ]);
+
+  const totalOrders = await Order.countDocuments();
+  const overdueOrders = await Order.findOverdue().countDocuments();
+
+  res.json({
+    statusBreakdown: stats,
+    totalOrders,
+    overdueOrders
+  });
+}));
+
+export default router; 
