@@ -17,7 +17,6 @@ export const OrderList = ({ orders, onEditOrder, onDeleteOrder }) => {
   console.log("Orders data received by OrderList:", orders);
   const [searchTerm, setSearchTerm] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
-  const [rollStatusFilter, setRollStatusFilter] = useState("all");
   const [gradeFilter, setGradeFilter] = useState("all");
   const [descFilter, setDescFilter] = useState("all");
   const [expanded, setExpanded] = useState({});
@@ -48,11 +47,10 @@ export const OrderList = ({ orders, onEditOrder, onDeleteOrder }) => {
       ));
 
     const matchesStatus = statusFilter === "all" || (order.rolls && order.rolls.some(r => r?.status === statusFilter));
-    const matchesRollStatus = rollStatusFilter === "all" || (order.rolls && order.rolls.some(r => r?.status === rollStatusFilter));
     const matchesGrade = gradeFilter === "all" || (order.rolls && order.rolls.some(r => r?.grade === gradeFilter));
     const matchesDesc = descFilter === "all" || (order.rolls && order.rolls.some(r => r?.rollDescription === descFilter));
 
-    return matchesSearch && matchesStatus && matchesRollStatus && matchesGrade && matchesDesc;
+    return matchesSearch && matchesStatus && matchesGrade && matchesDesc;
   });
 
   // Sort by orderDate (latest first)
@@ -85,17 +83,6 @@ export const OrderList = ({ orders, onEditOrder, onDeleteOrder }) => {
           </SelectTrigger>
           <SelectContent>
             <SelectItem value="all">All Order Statuses</SelectItem>
-            {allRollStatuses.map((status) => (
-              <SelectItem key={status} value={status}>{status}</SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
-        <Select value={rollStatusFilter} onValueChange={setRollStatusFilter}>
-          <SelectTrigger className="w-full sm:w-48">
-            <SelectValue placeholder="Filter by roll status" />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="all">All Roll Statuses</SelectItem>
             {allRollStatuses.map((status) => (
               <SelectItem key={status} value={status}>{status}</SelectItem>
             ))}

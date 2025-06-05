@@ -1,15 +1,38 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { FileText, Clock, CheckCircle, DollarSign, Calendar } from "lucide-react";
+import { useState } from "react";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { Button } from "@/components/ui/button";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
 
 export const Dashboard = ({ orders }) => {
+  const [selectedMonth, setSelectedMonth] = useState(new Date().getMonth());
+  const currentYear = new Date().getFullYear();
+
+  const months = [
+    "January", "February", "March", "April", "May", "June",
+    "July", "August", "September", "October", "November", "December"
+  ];
+
   const stats = {
     total: orders.length,
-    pending: orders.filter((o) => o.status === "pending").length,
-    inProgress: orders.filter((o) => ["casting", "melting"].includes(o.status))
-      .length,
-    completed: orders.filter((o) => o.status === "done").length,
-    paid: orders.filter((o) => o.status === "paid").length,
+    pending: orders.filter((o) => o.rolls?.some(r => r.status === "Pending")).length,
+    casting: orders.filter((o) => o.rolls?.some(r => r.status === "casting")).length,
+    annealing: orders.filter((o) => o.rolls?.some(r => r.status === "annealing")).length,
+    machining: orders.filter((o) => o.rolls?.some(r => r.status === "machining")).length,
+    baringWobler: orders.filter((o) => o.rolls?.some(r => r.status === "baring/wobler")).length,
+    dispached: orders.filter((o) => o.rolls?.some(r => r.status === "dispached")).length,
     totalValue: orders.reduce((sum, order) => sum + order.totalPrice, 0),
     paidValue: orders
       .filter((o) => o.status === "paid")
@@ -23,12 +46,10 @@ export const Dashboard = ({ orders }) => {
     )
     .slice(0, 5);
 
-  const now = new Date();
-  const currentMonth = now.getMonth();
-  const currentYear = now.getFullYear();
-  const ordersThisMonth = orders.filter((order) => {
+  const ordersInSelectedMonth = orders.filter((order) => {
     const date = new Date(order.orderDate);
-    return date.getMonth() === currentMonth && date.getFullYear() === currentYear;
+    return date.getMonth() === selectedMonth && 
+           date.getFullYear() === currentYear;
   }).length;
 
   return (
@@ -50,8 +71,9 @@ export const Dashboard = ({ orders }) => {
             <Clock className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{stats.inProgress}</div>
-            
+            <div className="text-2xl font-bold">
+              {stats.casting + stats.annealing + stats.machining + stats.baringWobler}
+            </div>
           </CardContent>
         </Card>
 
@@ -61,17 +83,43 @@ export const Dashboard = ({ orders }) => {
             <CheckCircle className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{stats.completed}</div>
+            <div className="text-2xl font-bold">{stats.dispached}</div>
           </CardContent>
         </Card>
 
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">Orders This Month</CardTitle>
-            <Calendar className="h-4 w-4 text-muted-foreground" />
+            <Popover>
+              <PopoverTrigger asChild>
+                <Button variant="ghost" className="h-8 w-8 p-0">
+                  <Calendar className="h-4 w-4 text-muted-foreground" />
+                </Button>
+              </PopoverTrigger>
+              <PopoverContent className="w-[200px] p-0" align="end">
+                <Select
+                  value={selectedMonth.toString()}
+                  onValueChange={(value) => setSelectedMonth(parseInt(value))}
+                >
+                  <SelectTrigger className="w-full border-0">
+                    <SelectValue placeholder="Select month" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {months.map((month, index) => (
+                      <SelectItem key={month} value={index.toString()}>
+                        {month}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </PopoverContent>
+            </Popover>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{ordersThisMonth}</div>
+            <div className="text-2xl font-bold">{ordersInSelectedMonth}</div>
+            <p className="text-xs text-muted-foreground mt-1">
+              {months[selectedMonth]} {currentYear}
+            </p>
           </CardContent>
         </Card>
       </div>
@@ -88,16 +136,24 @@ export const Dashboard = ({ orders }) => {
                 <Badge variant="secondary">{stats.pending}</Badge>
               </div>
               <div className="flex justify-between items-center">
-                <span>In Progress</span>
-                <Badge variant="secondary">{stats.inProgress}</Badge>
+                <span>Casting</span>
+                <Badge variant="secondary">{stats.casting}</Badge>
               </div>
               <div className="flex justify-between items-center">
-                <span>Completed</span>
-                <Badge variant="secondary">{stats.completed}</Badge>
+                <span>Annealing</span>
+                <Badge variant="secondary">{stats.annealing}</Badge>
               </div>
               <div className="flex justify-between items-center">
-                <span>Paid</span>
-                <Badge variant="secondary">{stats.paid}</Badge>
+                <span>Machining</span>
+                <Badge variant="secondary">{stats.machining}</Badge>
+              </div>
+              <div className="flex justify-between items-center">
+                <span>Baring/Wobler</span>
+                <Badge variant="secondary">{stats.baringWobler}</Badge>
+              </div>
+              <div className="flex justify-between items-center">
+                <span>Dispached</span>
+                <Badge variant="secondary">{stats.dispached}</Badge>
               </div>
             </div>
           </CardContent>

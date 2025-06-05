@@ -13,7 +13,7 @@ import {
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 
 function generateOrderNumber() {
-  return `ORD-${Date.now()}-${Math.floor(Math.random() * 1000)}`;
+  return `CS-${Date.now()}-${Math.floor(Math.random() * 1000)}`;
 }
 
 export const OrderForm = ({ order, onSubmit, onCancel }) => {
