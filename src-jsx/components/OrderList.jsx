@@ -12,6 +12,14 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { StatusBadge } from "./StatusBadge";
 import { Edit, Trash2, Search, ChevronDown, ChevronUp } from "lucide-react";
 import { saveAs } from 'file-saver';
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+  DialogFooter,
+} from "@/components/ui/dialog";
 
 export const OrderList = ({ orders, onEditOrder, onDeleteOrder }) => {
   console.log("Orders data received by OrderList:", orders);
@@ -21,12 +29,30 @@ export const OrderList = ({ orders, onEditOrder, onDeleteOrder }) => {
   const [descFilter, setDescFilter] = useState("all");
   const [expanded, setExpanded] = useState({});
   const [page, setPage] = useState(1);
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [deleteConfirmation, setDeleteConfirmation] = useState("");
+  const [orderToDelete, setOrderToDelete] = useState(null);
   const ORDERS_PER_PAGE = 10;
 
   // Collect all unique roll statuses, grades, and descriptions for filters
   const allRollStatuses = Array.from(new Set(orders.flatMap(o => o.rolls?.map(r => r.status) || [])));
   const allGrades = Array.from(new Set(orders.flatMap(o => o.rolls?.map(r => r.grade) || [])));
   const allDescs = Array.from(new Set(orders.flatMap(o => o.rolls?.map(r => r.rollDescription) || [])));
+
+  const handleDeleteClick = (order) => {
+    setOrderToDelete(order);
+    setDeleteDialogOpen(true);
+    setDeleteConfirmation("");
+  };
+
+  const handleDeleteConfirm = () => {
+    if (deleteConfirmation === "delete my order") {
+      onDeleteOrder(orderToDelete._id);
+      setDeleteDialogOpen(false);
+      setDeleteConfirmation("");
+      setOrderToDelete(null);
+    }
+  };
 
   const filteredOrders = orders.filter((order) => {
     // Ensure order and its properties exist before accessing
@@ -66,6 +92,48 @@ export const OrderList = ({ orders, onEditOrder, onDeleteOrder }) => {
 
   return (
     <div className="space-y-6">
+      {/* Delete Confirmation Dialog */}
+      <Dialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Delete Order</DialogTitle>
+            <br />
+            <DialogDescription style={{ fontSize: '14px', fontWeight: 'bold', marginBottom: '5px' }}>
+              Are you sure you want to delete this order? 
+              <br />
+              <br />
+              Type <span style={{ color: 'red' }}>"delete my order"</span> to confirm.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="py-4">
+            <Input
+              value={deleteConfirmation}
+              onChange={(e) => setDeleteConfirmation(e.target.value)}
+              placeholder="Type 'delete my order' to confirm"
+            />
+          </div>
+          <DialogFooter>
+            <Button
+              variant="outline"
+              onClick={() => {
+                setDeleteDialogOpen(false);
+                setDeleteConfirmation("");
+                setOrderToDelete(null);
+              }}
+            >
+              Cancel
+            </Button>
+            <Button
+              variant="destructive"
+              onClick={handleDeleteConfirm}
+              disabled={deleteConfirmation !== "delete my order"}
+            >
+              Delete Order
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
       {/* Filters */}
       <div className="flex flex-col sm:flex-row gap-4 flex-wrap">
         <div className="relative flex-1 min-w-[200px]">
@@ -152,7 +220,7 @@ export const OrderList = ({ orders, onEditOrder, onDeleteOrder }) => {
                   <Button
                     size="sm"
                     variant="outline"
-                    onClick={() => onDeleteOrder(order._id)}
+                    onClick={() => handleDeleteClick(order)}
                     className="text-red-600 hover:text-red-700"
                   >
                     <Trash2 size={16} />

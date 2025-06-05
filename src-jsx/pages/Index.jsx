@@ -20,13 +20,11 @@ const Index = () => {
   };
 
   const handleDeleteOrder = (id) => {
-    if (window.confirm("Are you sure you want to delete this order?")) {
-      deleteOrder(id);
-      toast({
-        title: "Success",
-        description: "Order deleted successfully",
-      });
-    }
+    deleteOrder(id);
+    toast({
+      title: "Success",
+      description: "Order deleted successfully",
+    });
   };
 
   const handleFormSubmit = async (orderData) => {
