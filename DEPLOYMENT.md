@@ -13,13 +13,18 @@ Your Order Management System monorepo is configured and ready for Vercel deploym
 
 ### 1. Environment Variables in Vercel Dashboard
 
-Set these environment variables in your Vercel project settings:
+Your `vercel.json` is now configured to automatically provision storage. Set these environment variables in your Vercel project settings:
 
 ```env
 MONGODB_URI=mongodb+srv://username:password@cluster.mongodb.net/order-management?retryWrites=true&w=majority
 NODE_ENV=production
 PRODUCTION_URL=https://your-app.vercel.app
 ```
+
+**Storage variables are auto-configured by vercel.json:**
+- `KV_REST_API_URL` - Auto-linked to oms-cache KV database
+- `KV_REST_API_TOKEN` - Auto-linked to oms-cache KV database
+- `BLOB_READ_WRITE_TOKEN` - Auto-linked to oms-files Blob store
 
 ### 2. Verify Build Configuration
 
@@ -30,27 +35,30 @@ Your current setup:
 
 ## 🌐 Deployment Process
 
-### Option 1: Automatic Deployment (Recommended)
+### Option 1: Automatic Deployment with Storage (Recommended)
 
 1. **Connect Repository to Vercel**:
    - Go to [vercel.com](https://vercel.com)
    - Import your GitHub/GitLab repository
    - Vercel will auto-detect the monorepo structure
 
-2. **Configure Project Settings**:
-   - **Framework Preset**: Other
-   - **Root Directory**: Leave empty (monorepo root)
-   - **Build Command**: `npm run build` (already configured)
-   - **Output Directory**: `frontend/dist` (already configured)
+2. **Storage Auto-Provisioning**:
+   - Your `vercel.json` automatically creates:
+     - **KV Database**: `oms-cache` for caching
+     - **Blob Store**: `oms-files` for file storage
+   - Environment variables are auto-linked
 
-3. **Set Environment Variables**:
+3. **Set Required Environment Variables**:
    - Add `MONGODB_URI` with your MongoDB connection string
-   - Add `NODE_ENV=production`
    - Add `PRODUCTION_URL` with your Vercel app URL
+   - Storage variables are automatically configured
 
-4. **Deploy**: Click "Deploy" - Vercel will build and deploy automatically
+4. **Deploy**: Click "Deploy" - Vercel will:
+   - Create storage resources
+   - Build and deploy your app
+   - Link storage to your functions
 
-### Option 2: Manual Deployment via CLI
+### Option 2: Manual Deployment via CLI with Storage Setup
 
 ```bash
 # Install Vercel CLI
@@ -59,10 +67,14 @@ npm i -g vercel
 # Login to Vercel
 vercel login
 
+# Run storage setup script (optional - auto-creates storage)
+node scripts/setup-vercel-storage.js
+
 # Deploy from project root
 vercel
 
-# Follow prompts and set environment variables
+# Pull environment variables locally
+vercel env pull .env.local
 ```
 
 ## 🔍 Post-Deployment Verification

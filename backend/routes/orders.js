@@ -1,5 +1,6 @@
 import express from 'express';
 import Order from '../models/Order.js';
+import storageService from '../services/storageService.js';
 
 const router = express.Router();
 
@@ -59,31 +60,22 @@ router.get('/overdue', asyncHandler(async (req, res) => {
   res.json(overdueOrders);
 }));
 
-// Create a new order
+// Create a new order (with cache invalidation)
 router.post('/', asyncHandler(async (req, res) => {
-  const order = new Order(req.body);
-  const savedOrder = await order.save();
+  const savedOrder = await storageService.createOrder(req.body);
   res.status(201).json(savedOrder);
 }));
 
-// Update an order
+// Update an order (with cache invalidation)
 router.put('/:id', asyncHandler(async (req, res) => {
-  const order = await Order.findByIdAndUpdate(
-    req.params.id,
-    req.body,
-    { 
-      new: true, 
-      runValidators: true,
-      context: 'query'
-    }
-  );
-  
+  const order = await storageService.updateOrder(req.params.id, req.body);
+
   if (!order) {
     const error = new Error('Order not found');
     error.statusCode = 404;
     throw error;
   }
-  
+
   res.json(order);
 }));
 
@@ -100,28 +92,23 @@ router.delete('/:id', asyncHandler(async (req, res) => {
   res.json({ message: 'Order deleted successfully' });
 }));
 
-// Get order statistics
+// Get order statistics (cached)
 router.get('/stats', asyncHandler(async (req, res) => {
-  const stats = await Order.aggregate([
-    {
-      $unwind: '$rolls'
-    },
-    {
-      $group: {
-        _id: '$rolls.status',
-        count: { $sum: 1 }
-      }
-    }
-  ]);
+  const stats = await storageService.getDashboardStats();
+  res.json(stats);
+}));
 
-  const totalOrders = await Order.countDocuments();
-  const overdueOrders = await Order.findOverdue().countDocuments();
+// Get analytics data
+router.get('/analytics', asyncHandler(async (req, res) => {
+  const timeRange = req.query.range || '30d';
+  const analytics = await storageService.getOrderAnalytics(timeRange);
+  res.json(analytics);
+}));
 
-  res.json({
-    statusBreakdown: stats,
-    totalOrders,
-    overdueOrders
-  });
+// Storage health check
+router.get('/health', asyncHandler(async (req, res) => {
+  const health = await storageService.healthCheck();
+  res.json(health);
 }));
 
 export default router; 

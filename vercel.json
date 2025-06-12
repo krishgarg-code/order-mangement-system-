@@ -29,12 +29,58 @@
   "buildCommand": "npm run build",
   "devCommand": "npm run dev",
   "framework": null,
+  "storage": {
+    "kv": [
+      {
+        "name": "oms-cache",
+        "description": "Order Management System caching layer for dashboard stats, order lists, and search results"
+      }
+    ],
+    "blob": [
+      {
+        "name": "oms-files",
+        "description": "Order Management System file storage for attachments, invoices, and exports"
+      }
+    ]
+  },
   "env": {
-    "NODE_ENV": "production"
+    "NODE_ENV": "production",
+    "KV_REST_API_URL": "@oms-cache-rest-url",
+    "KV_REST_API_TOKEN": "@oms-cache-rest-token",
+    "BLOB_READ_WRITE_TOKEN": "@oms-files-read-write-token"
   },
   "functions": {
     "backend/index.js": {
-      "maxDuration": 30
+      "maxDuration": 30,
+      "memory": 1024
     }
-  }
+  },
+  "headers": [
+    {
+      "source": "/api/(.*)",
+      "headers": [
+        {
+          "key": "Cache-Control",
+          "value": "s-maxage=60, stale-while-revalidate=300"
+        }
+      ]
+    },
+    {
+      "source": "/(.*)",
+      "headers": [
+        {
+          "key": "X-Content-Type-Options",
+          "value": "nosniff"
+        },
+        {
+          "key": "X-Frame-Options",
+          "value": "DENY"
+        },
+        {
+          "key": "X-XSS-Protection",
+          "value": "1; mode=block"
+        }
+      ]
+    }
+  ]
 }
