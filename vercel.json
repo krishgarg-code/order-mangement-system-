@@ -1,6 +1,5 @@
 {
   "version": 2,
-  "name": "order-management-system",
   "builds": [
     {
       "src": "frontend/package.json",
@@ -24,46 +23,9 @@
       "dest": "frontend/dist/$1"
     }
   ],
-  "outputDirectory": "frontend/dist",
-  "installCommand": "npm install",
-  "buildCommand": "npm run build",
-  "devCommand": "npm run dev",
-  "framework": null,
-  "env": {
-    "NODE_ENV": "production"
-  },
   "functions": {
     "backend/index.js": {
-      "maxDuration": 30,
-      "memory": 1024
+      "maxDuration": 30
     }
-  },
-  "headers": [
-    {
-      "source": "/api/(.*)",
-      "headers": [
-        {
-          "key": "Cache-Control",
-          "value": "s-maxage=60, stale-while-revalidate=300"
-        }
-      ]
-    },
-    {
-      "source": "/(.*)",
-      "headers": [
-        {
-          "key": "X-Content-Type-Options",
-          "value": "nosniff"
-        },
-        {
-          "key": "X-Frame-Options",
-          "value": "DENY"
-        },
-        {
-          "key": "X-XSS-Protection",
-          "value": "1; mode=block"
-        }
-      ]
-    }
-  ]
+  }
 }
