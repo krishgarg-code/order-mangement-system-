@@ -47,19 +47,20 @@ function checkVercelAuth() {
 function createKVDatabase() {
   console.log('\n📦 Creating KV database...');
   try {
-    const result = execSync('vercel kv create oms-cache --region iad1', { 
-      stdio: 'pipe', 
-      encoding: 'utf8' 
+    const result = execSync('vercel kv create oms-cache', {
+      stdio: 'pipe',
+      encoding: 'utf8'
     });
     console.log('✅ KV database "oms-cache" created successfully');
     console.log(result);
     return true;
   } catch (error) {
-    if (error.message.includes('already exists')) {
+    if (error.message.includes('already exists') || error.message.includes('name is already taken')) {
       console.log('✅ KV database "oms-cache" already exists');
       return true;
     }
     console.error('❌ Failed to create KV database:', error.message);
+    console.log('💡 You can create it manually in Vercel dashboard: Storage → KV → Create Database');
     return false;
   }
 }
@@ -68,40 +69,36 @@ function createKVDatabase() {
 function createBlobStore() {
   console.log('\n📁 Creating Blob store...');
   try {
-    const result = execSync('vercel blob create oms-files', { 
-      stdio: 'pipe', 
-      encoding: 'utf8' 
+    const result = execSync('vercel blob create oms-files', {
+      stdio: 'pipe',
+      encoding: 'utf8'
     });
     console.log('✅ Blob store "oms-files" created successfully');
     console.log(result);
     return true;
   } catch (error) {
-    if (error.message.includes('already exists')) {
+    if (error.message.includes('already exists') || error.message.includes('name is already taken')) {
       console.log('✅ Blob store "oms-files" already exists');
       return true;
     }
     console.error('❌ Failed to create Blob store:', error.message);
+    console.log('💡 You can create it manually in Vercel dashboard: Storage → Blob → Create Store');
     return false;
   }
 }
 
-// Link storage to project
-function linkStorageToProject() {
-  console.log('\n🔗 Linking storage to project...');
-  try {
-    // Link KV database
-    execSync('vercel env add KV_REST_API_URL', { stdio: 'inherit' });
-    execSync('vercel env add KV_REST_API_TOKEN', { stdio: 'inherit' });
-    
-    // Link Blob store
-    execSync('vercel env add BLOB_READ_WRITE_TOKEN', { stdio: 'inherit' });
-    
-    console.log('✅ Storage linked to project successfully');
-    return true;
-  } catch (error) {
-    console.error('❌ Failed to link storage:', error.message);
-    return false;
-  }
+// Show storage linking instructions
+function showLinkingInstructions() {
+  console.log('\n🔗 Storage Linking Instructions:');
+  console.log('After creating storage, link them to your project:');
+  console.log('');
+  console.log('1. Go to Vercel Dashboard → Your Project → Storage');
+  console.log('2. Connect the created KV database and Blob store');
+  console.log('3. Or use CLI commands:');
+  console.log('   vercel env add KV_REST_API_URL');
+  console.log('   vercel env add KV_REST_API_TOKEN');
+  console.log('   vercel env add BLOB_READ_WRITE_TOKEN');
+  console.log('');
 }
 
 // Update local environment file
@@ -179,10 +176,13 @@ async function setupStorage() {
     process.exit(1);
   }
   
-  // Step 3: Update environment
+  // Step 3: Show linking instructions
+  showLinkingInstructions();
+
+  // Step 4: Update environment
   updateLocalEnv();
-  
-  // Step 4: Verify setup
+
+  // Step 5: Verify setup
   verifySetup();
   
   // Step 5: Show next steps
