@@ -35,3 +35,6 @@ scripts/test-storage.js
 STORAGE_ANALYSIS.md
 DEPLOYMENT.md
 README.md
+
+# Backend vercel.json (not needed with new structure)
+backend/vercel.json
