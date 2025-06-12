@@ -1,12 +1,15 @@
 {
-  "name": "oms-backend",
+  "name": "@oms/backend",
   "version": "1.0.0",
   "description": "Order Management System Backend",
   "main": "index.js",
   "type": "module",
   "scripts": {
     "start": "node index.js",
-    "dev": "nodemon index.js"
+    "dev": "nodemon index.js",
+    "build": "echo 'Backend build completed - no build step required for Node.js'",
+    "clean": "echo 'Backend clean completed'",
+    "test": "echo 'No tests specified'"
   },
   "keywords": [],
   "author": "",

@@ -6,8 +6,30 @@ import 'dotenv/config';
 const app = express();
 
 // Middleware
+const allowedOrigins = [
+  'http://localhost:5173',
+  'http://127.0.0.1:5173',
+  'http://localhost:8080',
+  'http://127.0.0.1:8080',
+  'http://localhost:4173', // Vite preview
+  process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : null,
+  process.env.PRODUCTION_URL || null
+].filter(Boolean);
+
 app.use(cors({
-  origin: ['http://localhost:5173', 'http://127.0.0.1:5173', 'http://localhost:8080', 'http://127.0.0.1:8080'], // Vite's default ports and custom port
+  origin: process.env.NODE_ENV === 'production'
+    ? (origin, callback) => {
+        // Allow requests with no origin (mobile apps, curl, etc.)
+        if (!origin) return callback(null, true);
+
+        // Check if origin is in allowed list or is a Vercel preview URL
+        if (allowedOrigins.includes(origin) || origin.includes('.vercel.app')) {
+          return callback(null, true);
+        }
+
+        return callback(new Error('Not allowed by CORS'));
+      }
+    : allowedOrigins,
   methods: ['GET', 'POST', 'PUT', 'DELETE'],
   credentials: true
 }));

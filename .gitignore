@@ -48,3 +48,28 @@ yarn-error.log*
 
 # Local files
 *.local
+
+# Monorepo specific
+.vite/
+.turbo/
+.cache/
+
+# Docker
+.dockerignore
+
+# Database files
+*.db
+*.sqlite
+*.sqlite3
+
+# Backup files
+*.bak
+*.backup
+
+# TypeScript
+*.tsbuildinfo
+
+# Lock files (keep package-lock.json)
+yarn.lock
+pnpm-lock.yaml
+bun.lockb

@@ -1,0 +1,47 @@
+# Development Dockerfile for Order Management System Monorepo
+
+FROM node:18-alpine AS base
+
+WORKDIR /app
+
+# Copy root package files
+COPY package*.json ./
+
+# Install root dependencies
+RUN npm ci
+
+# Backend development stage
+FROM base AS backend-dev
+
+# Copy backend package files
+COPY backend/package*.json ./backend/
+
+# Install backend dependencies
+RUN npm ci --workspace=backend
+
+# Copy backend source
+COPY backend/ ./backend/
+
+WORKDIR /app/backend
+
+EXPOSE 3000
+
+CMD ["npm", "run", "dev"]
+
+# Frontend development stage
+FROM base AS frontend-dev
+
+# Copy frontend package files
+COPY frontend/package*.json ./frontend/
+
+# Install frontend dependencies
+RUN npm ci --workspace=frontend
+
+# Copy frontend source
+COPY frontend/ ./frontend/
+
+WORKDIR /app/frontend
+
+EXPOSE 8080
+
+CMD ["npm", "run", "dev"]

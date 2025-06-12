@@ -1,8 +1,40 @@
 {
-  "rewrites": [
+  "version": 2,
+  "name": "order-management-system",
+  "builds": [
     {
-      "source": "/api/:path*",
-      "destination": "https://rolling-mill-orders-backend.vercel.app/api/:path*"
+      "src": "frontend/package.json",
+      "use": "@vercel/static-build",
+      "config": {
+        "distDir": "frontend/dist"
+      }
+    },
+    {
+      "src": "backend/index.js",
+      "use": "@vercel/node"
     }
-  ]
-} 
+  ],
+  "routes": [
+    {
+      "src": "/api/(.*)",
+      "dest": "backend/index.js"
+    },
+    {
+      "src": "/(.*)",
+      "dest": "frontend/dist/$1"
+    }
+  ],
+  "outputDirectory": "frontend/dist",
+  "installCommand": "npm install",
+  "buildCommand": "npm run build",
+  "devCommand": "npm run dev",
+  "framework": null,
+  "env": {
+    "NODE_ENV": "production"
+  },
+  "functions": {
+    "backend/index.js": {
+      "maxDuration": 30
+    }
+  }
+}
