@@ -14,12 +14,14 @@
     "build": "npm run build:frontend && npm run build:backend",
     "build:frontend": "npm run build --workspace=frontend",
     "build:backend": "npm run build --workspace=backend",
+    "build:vercel": "npm ci && npm ci --workspace=frontend && npm ci --workspace=backend && npm run build",
     "start": "npm run start --workspace=backend",
     "start:frontend": "npm run preview --workspace=frontend",
     "lint": "npm run lint --workspace=frontend",
     "clean": "npm run clean --workspace=frontend && npm run clean --workspace=backend",
     "install:all": "npm install && npm install --workspace=frontend && npm install --workspace=backend",
-    "test": "npm run test --workspace=frontend && npm run test --workspace=backend"
+    "test": "npm run test --workspace=frontend && npm run test --workspace=backend",
+    "verify-build": "node scripts/verify-build.js"
   },
   "dependencies": {
     "concurrently": "^8.2.2",
