@@ -1,5 +1,5 @@
 {
-  "buildCommand": "npm run build:vercel-script",
+  "buildCommand": "npm run build:vercel",
   "outputDirectory": "frontend/dist",
   "installCommand": "npm install",
   "functions": {
