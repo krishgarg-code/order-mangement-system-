@@ -23,9 +23,9 @@ export const StatusBadge = ({ status }) => {
           label: "Machining",
           className: "bg-pink-100 text-pink-800 hover:bg-pink-200",
         };
-      case "baring/wobler":
+      case "bearing/wobler":
         return {
-          label: "Baring/Wobler",
+          label: "Bearing/Wobler",
           className: "bg-yellow-100 text-black-800 hover:bg-yellow-200",
         };
       case "dispached":

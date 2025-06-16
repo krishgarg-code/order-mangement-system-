@@ -94,15 +94,15 @@ export const OrderForm = ({ order, onSubmit, onCancel }) => {
     }
 
     // Validate each roll
-    const invalidRolls = formattedData.rolls.filter(roll => !roll.rollNumber || !roll.hardness);
+    const invalidRolls = formattedData.rolls.filter(roll => !roll.hardness);
     if (invalidRolls.length > 0) {
-      alert('All rolls must have a roll number and hardness');
+      alert('All rolls must have hardness specified');
       return;
     }
 
     // Remove empty fields from rolls
     formattedData.rolls = formattedData.rolls.map(roll => ({
-      rollNumber: roll.rollNumber,
+      rollNumber: roll.rollNumber || '',
       hardness: roll.hardness,
       machining: roll.machining || '',
       rollDescription: roll.rollDescription || '',
@@ -146,7 +146,7 @@ export const OrderForm = ({ order, onSubmit, onCancel }) => {
     "casting",
     "annealing",
     "machining",
-    "baring/wobler",
+    "bearing/wobler",
     "dispached",
   ];
   const gradeOptions = [
@@ -265,7 +265,6 @@ export const OrderForm = ({ order, onSubmit, onCancel }) => {
                         rolls[idx].rollNumber = e.target.value;
                         setFormData({ ...formData, rolls });
                       }}
-                      required
                     />
                   </div>
                   <div>

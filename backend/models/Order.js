@@ -3,7 +3,6 @@ import mongoose from 'mongoose';
 const rollSchema = new mongoose.Schema({
   rollNumber: {
     type: String,
-    required: [true, 'Roll number is required'],
     trim: true
   },
   hardness: {
@@ -30,7 +29,7 @@ const rollSchema = new mongoose.Schema({
   status: {
     type: String,
     enum: {
-      values: ['Pending', 'casting', 'annealing', 'machining', 'baring/wobler', 'dispached'],
+      values: ['Pending', 'casting', 'annealing', 'machining', 'bearing/wobler', 'dispached'],
       message: '{VALUE} is not a valid status'
     },
     default: 'Pending'

@@ -27,12 +27,26 @@ export const Dashboard = ({ orders }) => {
 
   const stats = {
     total: orders.length,
-    pending: orders.filter((o) => o.rolls?.some(r => r.status === "Pending")).length,
-    casting: orders.filter((o) => o.rolls?.some(r => r.status === "casting")).length,
-    annealing: orders.filter((o) => o.rolls?.some(r => r.status === "annealing")).length,
-    machining: orders.filter((o) => o.rolls?.some(r => r.status === "machining")).length,
-    baringWobler: orders.filter((o) => o.rolls?.some(r => r.status === "baring/wobler")).length,
-    dispached: orders.filter((o) => o.rolls?.some(r => r.status === "dispached")).length,
+    pending: orders.reduce((count, order) => 
+      count + (order.rolls?.filter(r => r.status === "Pending").length || 0), 0),
+    casting: orders.reduce((count, order) => 
+      count + (order.rolls?.filter(r => r.status === "casting").length || 0), 0),
+    annealing: orders.reduce((count, order) => 
+      count + (order.rolls?.filter(r => r.status === "annealing").length || 0), 0),
+    machining: orders.reduce((count, order) => 
+      count + (order.rolls?.filter(r => r.status === "machining").length || 0), 0),
+    bearingWobler: orders.reduce((count, order) => 
+      count + (order.rolls?.filter(r => r.status === "bearing/wobler").length || 0), 0),
+    dispached: orders.reduce((count, order) => 
+      count + (order.rolls?.filter(r => r.status === "dispached").length || 0), 0),
+    inProgress: orders.filter(order => 
+      order.rolls && order.rolls.length > 0 && 
+      order.rolls.some(roll => roll.status !== "dispached")
+    ).length,
+    completedOrders: orders.filter(order => 
+      order.rolls && order.rolls.length > 0 && 
+      order.rolls.every(roll => roll.status === "dispached")
+    ).length,
     totalValue: orders.reduce((sum, order) => sum + order.totalPrice, 0),
     paidValue: orders
       .filter((o) => o.status === "paid")
@@ -72,18 +86,18 @@ export const Dashboard = ({ orders }) => {
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">
-              {stats.casting + stats.annealing + stats.machining + stats.baringWobler}
+              {stats.inProgress}
             </div>
           </CardContent>
         </Card>
 
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Completed</CardTitle>
+            <CardTitle className="text-sm font-medium">Orders Completed</CardTitle>
             <CheckCircle className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{stats.dispached}</div>
+            <div className="text-2xl font-bold">{stats.completedOrders}</div>
           </CardContent>
         </Card>
 
@@ -148,8 +162,8 @@ export const Dashboard = ({ orders }) => {
                 <Badge variant="secondary">{stats.machining}</Badge>
               </div>
               <div className="flex justify-between items-center">
-                <span>Baring/Wobler</span>
-                <Badge variant="secondary">{stats.baringWobler}</Badge>
+                <span>Bearing/Wobler</span>
+                <Badge variant="secondary">{stats.bearingWobler}</Badge>
               </div>
               <div className="flex justify-between items-center">
                 <span>Dispached</span>
