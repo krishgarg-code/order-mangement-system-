@@ -6,7 +6,7 @@
  */
 
 import { execSync } from 'child_process';
-import { existsSync } from 'fs';
+import { existsSync, rmSync, mkdirSync, cpSync } from 'fs';
 import path from 'path';
 
 const colors = {
@@ -90,24 +90,37 @@ async function main() {
     success = false;
   }
 
-  // Create/clean dist directory and copy frontend build
+  // Create/clean dist directory and copy frontend build using Node.js APIs
   if (success) {
-    // Remove existing dist directory if it exists
-    if (existsSync('dist')) {
-      success = runCommand('rm -rf dist || rmdir /s /q dist', 'Clean existing dist directory') && success;
-    }
+    try {
+      log(`${colors.blue}🗂️  Managing dist directory...${colors.reset}`);
 
-    // Create new dist directory
-    success = runCommand('mkdir dist', 'Create dist directory') && success;
+      // Remove existing dist directory if it exists
+      if (existsSync('dist')) {
+        log(`${colors.blue}🧹 Cleaning existing dist directory...${colors.reset}`);
+        rmSync('dist', { recursive: true, force: true });
+        log(`${colors.green}✅ Existing dist directory cleaned${colors.reset}`);
+      }
 
-    // Copy frontend build to dist directory
-    success = runCommand('cp -r frontend/dist/* dist/ || xcopy /E /I frontend\\dist\\* dist\\', 'Copy frontend to dist') && success;
+      // Create new dist directory
+      log(`${colors.blue}📁 Creating new dist directory...${colors.reset}`);
+      mkdirSync('dist', { recursive: true });
+      log(`${colors.green}✅ New dist directory created${colors.reset}`);
 
-    // Verify the copy worked
-    if (existsSync('dist/index.html')) {
-      log(`${colors.green}✅ Frontend copied to dist directory${colors.reset}`);
-    } else {
-      log(`${colors.red}❌ Failed to copy frontend to dist directory${colors.reset}`);
+      // Copy frontend build to dist directory
+      log(`${colors.blue}📋 Copying frontend build to dist...${colors.reset}`);
+      cpSync('frontend/dist', 'dist', { recursive: true });
+      log(`${colors.green}✅ Frontend build copied to dist${colors.reset}`);
+
+      // Verify the copy worked
+      if (existsSync('dist/index.html')) {
+        log(`${colors.green}✅ Frontend copied to dist directory successfully${colors.reset}`);
+      } else {
+        log(`${colors.red}❌ Failed to copy frontend to dist directory${colors.reset}`);
+        success = false;
+      }
+    } catch (error) {
+      log(`${colors.red}❌ Error managing dist directory: ${error.message}${colors.reset}`);
       success = false;
     }
   }

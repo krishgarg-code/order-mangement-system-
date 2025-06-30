@@ -1,15 +1,18 @@
-{
-  "version": 2,
-  "builds": [
-    {
-      "src": "backend/index.js",
-      "use": "@vercel/node"
+
+
+  "buildCommand": "npm run build:vercel",
+  "outputDirectory": "dist",
+  "installCommand": "npm install",
+  "framework": null,
+  "functions": {
+    "backend/index.js": {
+      "maxDuration": 30
     }
-  ],
-  "routes": [
+  },
+  "rewrites": [
     {
-      "src": "/(.*)",
-      "dest": "/backend/index.js"
+      "source": "/(.*)",
+      "destination": "/backend/index.js"
     }
   ]
 }
