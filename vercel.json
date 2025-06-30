@@ -1,16 +1,12 @@
 
 {
+  "version": 2,
   "buildCommand": "npm run build:vercel",
   "outputDirectory": "dist",
   "installCommand": "npm install",
   "functions": {
-    "api/index.js": {
-      "maxDuration": 30
-    },
-    "api/test.js": {
-      "maxDuration": 30
-    },
-    "api/orders.js": {
+    "api/*.js": {
+      "runtime": "nodejs18.x",
       "maxDuration": 30
     }
   },
@@ -18,24 +14,10 @@
     {
       "source": "/api/(.*)",
       "destination": "/api/$1"
-    }
-  ],
-  "routes": [
-    {
-      "src": "/api/orders",
-      "dest": "/api/orders.js"
     },
     {
-      "src": "/api",
-      "dest": "/api/index.js"
-    },
-    {
-      "src": "/api/test",
-      "dest": "/api/test.js"
-    },
-    {
-      "src": "/(.*)",
-      "dest": "/$1"
+      "source": "/(.*)",
+      "destination": "/$1"
     }
   ]
 }
