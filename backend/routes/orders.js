@@ -1,6 +1,8 @@
 import express from 'express';
 import Order from '../models/Order.js';
 import storageService from '../services/storageService.js';
+import localDatabase from '../services/localDatabase.js';
+import mongoose from 'mongoose';
 
 const router = express.Router();
 
@@ -17,7 +19,7 @@ router.get('/', asyncHandler(async (req, res) => {
     const skip = (page - 1) * limit;
 
     const query = {};
-    
+
     // Add filters if provided
     if (req.query.status) {
       query['rolls.status'] = req.query.status;
@@ -29,13 +31,27 @@ router.get('/', asyncHandler(async (req, res) => {
       query.companyName = new RegExp(req.query.companyName, 'i');
     }
 
-    const [orders, total] = await Promise.all([
-      Order.find(query)
-        .sort({ createdAt: -1 })
-        .skip(skip)
-        .limit(limit),
-      Order.countDocuments(query)
-    ]);
+    let orders, total;
+
+    // Check if MongoDB is connected
+    if (mongoose.connection.readyState === 1) {
+      // Use MongoDB
+      [orders, total] = await Promise.all([
+        Order.find(query)
+          .sort({ createdAt: -1 })
+          .skip(skip)
+          .limit(limit),
+        Order.countDocuments(query)
+      ]);
+    } else {
+      // Use local database fallback
+      console.log('MongoDB not connected, using local database');
+      const allOrders = await localDatabase.findOrders(query);
+      total = allOrders.length;
+      orders = allOrders
+        .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))
+        .slice(skip, skip + limit);
+    }
 
     res.json({
       orders: orders || [],
@@ -62,7 +78,17 @@ router.get('/overdue', asyncHandler(async (req, res) => {
 
 // Create a new order (with cache invalidation)
 router.post('/', asyncHandler(async (req, res) => {
-  const savedOrder = await storageService.createOrder(req.body);
+  let savedOrder;
+
+  if (mongoose.connection.readyState === 1) {
+    // Use MongoDB
+    savedOrder = await storageService.createOrder(req.body);
+  } else {
+    // Use local database fallback
+    console.log('MongoDB not connected, using local database');
+    savedOrder = await localDatabase.createOrder(req.body);
+  }
+
   res.status(201).json(savedOrder);
 }));
 
