@@ -453,6 +453,3 @@ if (process.env.NODE_ENV !== 'production' || !process.env.VERCEL) {
   console.log(`📦 Version: ${packageJson.version}`);
   console.log(`🌍 Environment: ${process.env.NODE_ENV}`);
 }
-
-// Export the Express app for Vercel
-export default app;
