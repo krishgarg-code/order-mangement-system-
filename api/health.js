@@ -1,12 +1,11 @@
-// Simple test API endpoint for Vercel
+// Health check endpoint
 export default function handler(req, res) {
-  console.log('🧪 Test endpoint called');
-
+  console.log('🏥 Health check called');
+  
   res.status(200).json({
-    message: 'API test endpoint working!',
+    status: 'ok',
+    message: 'Order Management API Health Check',
     timestamp: new Date().toISOString(),
-    method: req.method,
-    url: req.url,
     vercel: !!process.env.VERCEL,
     nodeEnv: process.env.NODE_ENV
   });
