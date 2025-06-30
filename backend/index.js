@@ -307,6 +307,21 @@ console.log('   GET  /api/orders/health - Storage health');
 console.log('   GET  /api/orders/analytics - Order analytics');
 console.log('   GET  /api/orders/overdue - Overdue orders');
 
+// Simple test endpoint for debugging
+app.get('/api/test', (req, res) => {
+  console.log('🧪 Test endpoint called');
+  res.json({
+    message: 'API test endpoint working!',
+    timestamp: new Date().toISOString(),
+    vercel: !!process.env.VERCEL,
+    nodeEnv: process.env.NODE_ENV,
+    path: req.path,
+    method: req.method
+  });
+});
+
+console.log('   GET  /api/test - Test endpoint');
+
 // ==================== REACT APP CATCH-ALL ROUTE ====================
 // Serve React app for all non-API routes
 app.get('*', (req, res) => {
@@ -438,3 +453,6 @@ if (process.env.NODE_ENV !== 'production' || !process.env.VERCEL) {
   console.log(`📦 Version: ${packageJson.version}`);
   console.log(`🌍 Environment: ${process.env.NODE_ENV}`);
 }
+
+// Export the Express app for Vercel
+export default app;
