@@ -4,17 +4,15 @@
   "outputDirectory": "dist",
   "installCommand": "npm install",
   "framework": null,
-  "version": 2,
-  "builds": [
-    {
-      "src": "backend/index.js",
-      "use": "@vercel/node"
+  "functions": {
+    "api/*.js": {
+      "maxDuration": 30
     }
-  ],
-  "routes": [
+  },
+  "rewrites": [
     {
-      "src": "/(.*)",
-      "dest": "/backend/index.js"
+      "source": "/((?!api).*)",
+      "destination": "/index.html"
     }
   ]
 }
