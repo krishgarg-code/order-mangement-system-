@@ -1,3 +1,4 @@
+
 /**
  * Simple Local JSON Database Service
  * This is a temporary solution for development when MongoDB is not available
@@ -15,32 +16,71 @@ class LocalDatabase {
     this.dbPath = path.join(__dirname, '..', 'data');
     this.ordersFile = path.join(this.dbPath, 'orders.json');
     this.initialized = false;
+    this.inMemoryOrders = []; // Fallback for read-only environments
+    this.useInMemory = false;
   }
 
   async init() {
     if (this.initialized) return;
-    
+
     try {
-      // Create data directory if it doesn't exist
+      // Try to create data directory and file (for local development)
       await fs.mkdir(this.dbPath, { recursive: true });
-      
+
       // Create orders file if it doesn't exist
       try {
         await fs.access(this.ordersFile);
       } catch {
         await fs.writeFile(this.ordersFile, JSON.stringify([], null, 2));
       }
-      
+
       this.initialized = true;
-      console.log('Local database initialized');
+      this.useInMemory = false;
+      console.log('Local file database initialized');
     } catch (error) {
-      console.error('Failed to initialize local database:', error);
-      throw error;
+      // If file system is read-only (like in Vercel), use in-memory storage
+      console.warn('File system is read-only, using in-memory storage:', error.message);
+      this.useInMemory = true;
+      this.initialized = true;
+
+      // Add some sample data for demonstration
+      this.inMemoryOrders = [
+        {
+          _id: "sample1",
+          orderNumber: "ORD-001",
+          companyName: "Sample Company A",
+          broker: "Broker A",
+          quantity: 5,
+          orderDate: new Date().toISOString(),
+          expectedDelivery: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString(),
+          notes: "Sample order for demonstration",
+          rolls: [
+            {
+              rollNumber: "R001",
+              hardness: "HRC 45-50",
+              machining: "Rough",
+              rollDescription: "ROLL",
+              dimensions: "100x200",
+              status: "Pending",
+              grade: "ALLOYS"
+            }
+          ],
+          createdAt: new Date().toISOString(),
+          updatedAt: new Date().toISOString()
+        }
+      ];
+
+      console.log('In-memory database initialized with sample data');
     }
   }
 
   async readOrders() {
     await this.init();
+
+    if (this.useInMemory) {
+      return [...this.inMemoryOrders]; // Return a copy
+    }
+
     try {
       const data = await fs.readFile(this.ordersFile, 'utf8');
       return JSON.parse(data);
@@ -52,11 +92,20 @@ class LocalDatabase {
 
   async writeOrders(orders) {
     await this.init();
+
+    if (this.useInMemory) {
+      this.inMemoryOrders = [...orders]; // Store a copy
+      return;
+    }
+
     try {
       await fs.writeFile(this.ordersFile, JSON.stringify(orders, null, 2));
     } catch (error) {
       console.error('Error writing orders:', error);
-      throw error;
+      // Fall back to in-memory if write fails
+      console.warn('Falling back to in-memory storage');
+      this.useInMemory = true;
+      this.inMemoryOrders = [...orders];
     }
   }
 

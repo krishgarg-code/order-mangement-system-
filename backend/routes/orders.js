@@ -1,8 +1,14 @@
 import express from 'express';
 import Order from '../models/Order.js';
 import storageService from '../services/storageService.js';
-import localDatabase from '../services/localDatabase.js';
 import mongoose from 'mongoose';
+
+// Only import local database in development
+let localDatabase = null;
+if (process.env.NODE_ENV === 'development') {
+  const { default: localDb } = await import('../services/localDatabase.js');
+  localDatabase = localDb;
+}
 
 const router = express.Router();
 
@@ -37,20 +43,26 @@ router.get('/', asyncHandler(async (req, res) => {
     if (mongoose.connection.readyState === 1) {
       // Use MongoDB
       [orders, total] = await Promise.all([
-        Order.find(query)
+        Order.find
+        (query)
           .sort({ createdAt: -1 })
           .skip(skip)
           .limit(limit),
         Order.countDocuments(query)
       ]);
     } else {
-      // Use local database fallback
-      console.log('MongoDB not connected, using local database');
-      const allOrders = await localDatabase.findOrders(query);
-      total = allOrders.length;
-      orders = allOrders
-        .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))
-        .slice(skip, skip + limit);
+      // Only use local database fallback in development
+      if (process.env.NODE_ENV === 'development') {
+        console.log('MongoDB not connected, using local database (development only)');
+        const allOrders = await localDatabase.findOrders(query);
+        total = allOrders.length;
+        orders = allOrders
+          .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))
+          .slice(skip, skip + limit);
+      } else {
+        // In production, throw an error if MongoDB is not connected
+        throw new Error('Database connection unavailable');
+      }
     }
 
     res.json({
@@ -72,7 +84,29 @@ router.get('/', asyncHandler(async (req, res) => {
 
 // Get overdue orders
 router.get('/overdue', asyncHandler(async (req, res) => {
-  const overdueOrders = await Order.findOverdue();
+  let overdueOrders;
+
+  if (mongoose.connection.readyState === 1) {
+    // Use MongoDB
+    overdueOrders = await Order.findOverdue();
+  } else {
+    // Only use local database fallback in development
+    if (process.env.NODE_ENV === 'development') {
+      console.log('MongoDB not connected, using local database (development only)');
+      // Simple overdue logic for local database
+      const allOrders = await localDatabase.readOrders();
+      const now = new Date();
+      overdueOrders = allOrders.filter(order =>
+        order.expectedDelivery &&
+        new Date(order.expectedDelivery) < now &&
+        order.rolls && !order.rolls.every(roll => roll.status === 'dispached')
+      );
+    } else {
+      // In production, throw an error if MongoDB is not connected
+      throw new Error('Database connection unavailable');
+    }
+  }
+
   res.json(overdueOrders);
 }));
 
@@ -84,9 +118,14 @@ router.post('/', asyncHandler(async (req, res) => {
     // Use MongoDB
     savedOrder = await storageService.createOrder(req.body);
   } else {
-    // Use local database fallback
-    console.log('MongoDB not connected, using local database');
-    savedOrder = await localDatabase.createOrder(req.body);
+    // Only use local database fallback in development
+    if (process.env.NODE_ENV === 'development') {
+      console.log('MongoDB not connected, using local database (development only)');
+      savedOrder = await localDatabase.createOrder(req.body);
+    } else {
+      // In production, throw an error if MongoDB is not connected
+      throw new Error('Database connection unavailable');
+    }
   }
 
   res.status(201).json(savedOrder);
@@ -94,7 +133,21 @@ router.post('/', asyncHandler(async (req, res) => {
 
 // Update an order (with cache invalidation)
 router.put('/:id', asyncHandler(async (req, res) => {
-  const order = await storageService.updateOrder(req.params.id, req.body);
+  let order;
+
+  if (mongoose.connection.readyState === 1) {
+    // Use MongoDB
+    order = await storageService.updateOrder(req.params.id, req.body);
+  } else {
+    // Only use local database fallback in development
+    if (process.env.NODE_ENV === 'development') {
+      console.log('MongoDB not connected, using local database (development only)');
+      order = await localDatabase.updateOrder(req.params.id, req.body);
+    } else {
+      // In production, throw an error if MongoDB is not connected
+      throw new Error('Database connection unavailable');
+    }
+  }
 
   if (!order) {
     const error = new Error('Order not found');
@@ -107,20 +160,49 @@ router.put('/:id', asyncHandler(async (req, res) => {
 
 // Delete an order
 router.delete('/:id', asyncHandler(async (req, res) => {
-  const order = await Order.findByIdAndDelete(req.params.id);
-  
+  let order;
+
+  if (mongoose.connection.readyState === 1) {
+    // Use MongoDB
+    order = await Order.findByIdAndDelete(req.params.id);
+  } else {
+    // Only use local database fallback in development
+    if (process.env.NODE_ENV === 'development') {
+      console.log('MongoDB not connected, using local database (development only)');
+      order = await localDatabase.deleteOrder(req.params.id);
+    } else {
+      // In production, throw an error if MongoDB is not connected
+      throw new Error('Database connection unavailable');
+    }
+  }
+
   if (!order) {
     const error = new Error('Order not found');
     error.statusCode = 404;
     throw error;
   }
-  
+
   res.json({ message: 'Order deleted successfully' });
 }));
 
 // Get order statistics (cached)
 router.get('/stats', asyncHandler(async (req, res) => {
-  const stats = await storageService.getDashboardStats();
+  let stats;
+
+  if (mongoose.connection.readyState === 1) {
+    // Use MongoDB
+    stats = await storageService.getDashboardStats();
+  } else {
+    // Only use local database fallback in development
+    if (process.env.NODE_ENV === 'development') {
+      console.log('MongoDB not connected, using local database (development only)');
+      stats = await localDatabase.getStats();
+    } else {
+      // In production, throw an error if MongoDB is not connected
+      throw new Error('Database connection unavailable');
+    }
+  }
+
   res.json(stats);
 }));
 
