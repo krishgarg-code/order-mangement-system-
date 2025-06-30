@@ -38,20 +38,43 @@ try {
 const connectDB = async () => {
   if (mongoose.connection.readyState === 0) {
     try {
+      if (!process.env.MONGODB_URI) {
+        throw new Error('MONGODB_URI environment variable is not set');
+      }
       await mongoose.connect(process.env.MONGODB_URI);
       console.log('✅ MongoDB connected');
     } catch (error) {
       console.error('❌ MongoDB connection error:', error);
+      throw error; // Re-throw to handle in the main handler
     }
   }
 };
 
-module.exports = async function handler(req, res) {
+export default async function handler(req, res) {
   console.log(`📊 Orders API called: ${req.method} ${req.url}`);
-  
-  // Connect to database
-  await connectDB();
-  
+
+  // Set CORS headers
+  res.setHeader('Access-Control-Allow-Origin', '*');
+  res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
+  res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
+
+  // Handle preflight requests
+  if (req.method === 'OPTIONS') {
+    res.status(200).end();
+    return;
+  }
+
+  try {
+    // Connect to database
+    await connectDB();
+  } catch (dbError) {
+    console.error('❌ Database connection failed:', dbError);
+    return res.status(500).json({
+      message: 'Database connection failed',
+      error: dbError.message
+    });
+  }
+
   try {
     switch (req.method) {
       case 'GET':
