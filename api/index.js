@@ -4,8 +4,15 @@
  * and our existing Express backend
  */
 
-// Import the main Express app from backend
-import app from '../backend/index.js';
+import express from 'express';
+import mongoose from 'mongoose';
+import cors from 'cors';
+import 'dotenv/config';
+
+// Import routes directly
+import orderRoutes from '../backend/routes/orders.js';
+
+const app = express();
 
 // Add debugging for Vercel deployment
 console.log('🚀 Vercel API function loaded');
@@ -13,28 +20,76 @@ console.log('📍 Current working directory:', process.cwd());
 console.log('🌍 Environment:', process.env.NODE_ENV);
 console.log('📦 Vercel environment detected:', !!process.env.VERCEL);
 
-// Add test routes to verify API is working
+// Middleware
+app.use(cors({
+  origin: '*',
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+  credentials: true
+}));
+
+app.use(express.json({ limit: '10mb' }));
+app.use(express.urlencoded({ extended: true, limit: '10mb' }));
+
+// Request logging
+app.use((req, res, next) => {
+  console.log(`📨 ${req.method} ${req.url}`);
+  next();
+});
+
+// MongoDB Connection
+const MONGODB_URI = process.env.MONGODB_URI;
+if (MONGODB_URI) {
+  mongoose.connect(MONGODB_URI, {
+    serverSelectionTimeoutMS: 5000,
+    socketTimeoutMS: 45000,
+  }).then(() => {
+    console.log('✅ MongoDB connected in Vercel function');
+  }).catch(err => {
+    console.error('❌ MongoDB connection error:', err.message);
+  });
+}
+
+// Test endpoint
 app.get('/test', (req, res) => {
-  console.log('🧪 Test endpoint called at /test');
+  console.log('🧪 Test endpoint called');
   res.json({
     message: 'API is working!',
     path: req.path,
     url: req.url,
     timestamp: new Date().toISOString(),
-    environment: process.env.NODE_ENV,
-    vercel: !!process.env.VERCEL
+    mongodb: mongoose.connection.readyState === 1 ? 'connected' : 'disconnected'
   });
 });
 
-app.get('/api/test', (req, res) => {
-  console.log('🧪 Test endpoint called at /api/test');
+// Health check
+app.get('/', (req, res) => {
   res.json({
-    message: 'API is working at /api/test!',
-    path: req.path,
-    url: req.url,
+    status: 'ok',
+    message: 'Order Management API',
     timestamp: new Date().toISOString(),
-    environment: process.env.NODE_ENV,
-    vercel: !!process.env.VERCEL
+    mongodb: mongoose.connection.readyState === 1 ? 'connected' : 'disconnected'
+  });
+});
+
+// Register order routes without /api prefix (Vercel handles the /api part)
+app.use('/orders', orderRoutes);
+
+// 404 handler
+app.use((req, res) => {
+  console.log(`🚫 404: ${req.method} ${req.url}`);
+  res.status(404).json({
+    message: 'Route not found',
+    path: req.url,
+    method: req.method
+  });
+});
+
+// Error handler
+app.use((err, req, res, next) => {
+  console.error('💥 Error:', err.message);
+  res.status(500).json({
+    message: err.message,
+    path: req.url
   });
 });
 
