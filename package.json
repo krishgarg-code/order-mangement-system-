@@ -14,7 +14,7 @@
     "build": "npm run build:frontend && npm run build:backend",
     "build:frontend": "npm install --workspace=frontend && npm run build --workspace=frontend",
     "build:backend": "npm install --workspace=backend && npm run build --workspace=backend",
-    "build:vercel": "npm install && npm install --workspace=frontend && cd frontend && npx vite build",
+    "build:vercel": "npm install && npm install --workspace=frontend && cd frontend && npx vite build && cd .. && node -e \"require('fs').cpSync('frontend/dist', 'dist', {recursive: true})\"",
     "start": "npm run start --workspace=backend",
     "start:frontend": "npm run preview --workspace=frontend",
     "lint": "npm run lint --workspace=frontend",
