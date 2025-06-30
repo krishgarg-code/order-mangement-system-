@@ -1,6 +1,6 @@
 // Vercel API route for health check
-import mongoose from 'mongoose';
-import 'dotenv/config';
+const mongoose = require('mongoose');
+require('dotenv/config');
 
 // Connect to MongoDB
 const connectDB = async () => {
@@ -14,7 +14,7 @@ const connectDB = async () => {
   }
 };
 
-export default async function handler(req, res) {
+module.exports = async function handler(req, res) {
   console.log('🏥 Health check requested');
   
   // Connect to database

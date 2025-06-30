@@ -1,6 +1,6 @@
 // Vercel API route for orders
-import mongoose from 'mongoose';
-import 'dotenv/config';
+const mongoose = require('mongoose');
+require('dotenv/config');
 
 // Order Schema
 const orderSchema = new mongoose.Schema({
@@ -46,7 +46,7 @@ const connectDB = async () => {
   }
 };
 
-export default async function handler(req, res) {
+module.exports = async function handler(req, res) {
   console.log(`📊 Orders API called: ${req.method} ${req.url}`);
   
   // Connect to database

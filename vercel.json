@@ -2,5 +2,16 @@
 {
   "buildCommand": "npm run build:vercel",
   "outputDirectory": "dist",
-  "installCommand": "npm install"
+  "installCommand": "npm install",
+  "functions": {
+    "api/index.js": {
+      "maxDuration": 30
+    },
+    "api/test.js": {
+      "maxDuration": 30
+    },
+    "api/orders.js": {
+      "maxDuration": 30
+    }
+  }
 }
