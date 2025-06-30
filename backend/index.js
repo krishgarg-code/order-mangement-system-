@@ -230,6 +230,12 @@ app.get('/', (req, res) => {
     environment: process.env.NODE_ENV || 'development',
     timestamp: new Date().toISOString(),
     uptime: process.uptime(),
+    routing: {
+      isVercel: !!process.env.VERCEL,
+      routePrefix: process.env.VERCEL ? '' : '/api',
+      requestPath: req.path,
+      requestUrl: req.url
+    },
     memory: {
       used: Math.round(process.memoryUsage().heapUsed / 1024 / 1024),
       total: Math.round(process.memoryUsage().heapTotal / 1024 / 1024),
@@ -264,18 +270,29 @@ app.get('/', (req, res) => {
 console.log('🛣️  Configuring routes...');
 
 import orderRoutes from './routes/orders.js';
-app.use('/api/orders', orderRoutes);
+
+// In Vercel, the /api prefix is handled by the rewrite rule
+// So we register routes without the /api prefix
+if (process.env.VERCEL) {
+  app.use('/orders', orderRoutes);
+  console.log('🔧 Vercel mode: Routes registered without /api prefix');
+} else {
+  app.use('/api/orders', orderRoutes);
+  console.log('🔧 Local mode: Routes registered with /api prefix');
+}
 
 console.log('✅ Routes configured:');
 console.log('   GET  / - Health check');
-console.log('   GET  /api/orders - List orders');
-console.log('   POST /api/orders - Create order');
-console.log('   PUT  /api/orders/:id - Update order');
-console.log('   DELETE /api/orders/:id - Delete order');
-console.log('   GET  /api/orders/stats - Dashboard stats');
-console.log('   GET  /api/orders/health - Storage health');
-console.log('   GET  /api/orders/analytics - Order analytics');
-console.log('   GET  /api/orders/overdue - Overdue orders');
+
+const routePrefix = process.env.VERCEL ? '' : '/api';
+console.log(`   GET  ${routePrefix}/orders - List orders`);
+console.log(`   POST ${routePrefix}/orders - Create order`);
+console.log(`   PUT  ${routePrefix}/orders/:id - Update order`);
+console.log(`   DELETE ${routePrefix}/orders/:id - Delete order`);
+console.log(`   GET  ${routePrefix}/orders/stats - Dashboard stats`);
+console.log(`   GET  ${routePrefix}/orders/health - Storage health`);
+console.log(`   GET  ${routePrefix}/orders/analytics - Order analytics`);
+console.log(`   GET  ${routePrefix}/orders/overdue - Overdue orders`);
 
 // ==================== ERROR HANDLING ====================
 // 404 handler
