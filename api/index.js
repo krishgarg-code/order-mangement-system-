@@ -9,7 +9,7 @@ import mongoose from 'mongoose';
 import cors from 'cors';
 import 'dotenv/config';
 
-// Import routes directly
+// Import routes and models directly
 import orderRoutes from '../backend/routes/orders.js';
 
 const app = express();

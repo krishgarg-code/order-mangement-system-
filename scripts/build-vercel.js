@@ -60,6 +60,11 @@ async function main() {
   // Install workspace dependencies
   success = runCommand('npm install --workspace=frontend', 'Install frontend dependencies') && success;
   success = runCommand('npm install --workspace=backend', 'Install backend dependencies') && success;
+
+  // Install API dependencies for Vercel functions
+  if (existsSync('api/package.json')) {
+    success = runCommand('npm install', 'Install API dependencies', path.join(process.cwd(), 'api')) && success;
+  }
   
   if (!success) {
     log(`${colors.red}❌ Workspace dependency installation failed${colors.reset}`);
