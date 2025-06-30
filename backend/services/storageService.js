@@ -7,7 +7,11 @@ import Order from '../models/Order.js';
 
 class StorageService {
   constructor() {
-    // Simple MongoDB-only storage service
+    console.log('🗄️  Initializing Storage Service (MongoDB Only)');
+    console.log('   Cache: Disabled');
+    console.log('   Blob Storage: Disabled');
+    console.log('   Local Storage: Disabled');
+    console.log('   Primary Storage: MongoDB');
   }
 
   // ==================== ORDER OPERATIONS ====================
@@ -16,19 +20,35 @@ class StorageService {
    * Get dashboard statistics
    */
   async getDashboardStats() {
-    const [totalOrders, pendingOrders, completedOrders] = await Promise.all([
-      Order.countDocuments(),
-      Order.countDocuments({ 'rolls.status': 'Pending' }),
-      Order.countDocuments({ 'rolls.status': 'dispached' })
-    ]);
+    console.log('📊 Fetching dashboard statistics...');
+    const startTime = Date.now();
 
-    return {
-      totalOrders,
-      pendingOrders,
-      completedOrders,
-      totalRevenue: 0, // Revenue calculation would need pricing data
-      lastUpdated: new Date().toISOString()
-    };
+    try {
+      const [totalOrders, pendingOrders, completedOrders] = await Promise.all([
+        Order.countDocuments(),
+        Order.countDocuments({ 'rolls.status': 'Pending' }),
+        Order.countDocuments({ 'rolls.status': 'dispached' })
+      ]);
+
+      const stats = {
+        totalOrders,
+        pendingOrders,
+        completedOrders,
+        totalRevenue: 0, // Revenue calculation would need pricing data
+        lastUpdated: new Date().toISOString()
+      };
+
+      const duration = Date.now() - startTime;
+      console.log(`✅ Dashboard stats fetched in ${duration}ms`);
+      console.log(`   Total Orders: ${totalOrders}`);
+      console.log(`   Pending Orders: ${pendingOrders}`);
+      console.log(`   Completed Orders: ${completedOrders}`);
+
+      return stats;
+    } catch (error) {
+      console.error('❌ Error fetching dashboard stats:', error.message);
+      throw error;
+    }
   }
 
   /**
@@ -47,8 +67,29 @@ class StorageService {
    * Create order
    */
   async createOrder(orderData) {
-    const order = await Order.create(orderData);
-    return order;
+    console.log('📝 Creating new order...');
+    console.log(`   Company: ${orderData.companyName || 'Unknown'}`);
+    console.log(`   Order Number: ${orderData.orderNumber || 'Not specified'}`);
+    console.log(`   Rolls Count: ${orderData.rolls?.length || 0}`);
+
+    const startTime = Date.now();
+
+    try {
+      const order = await Order.create(orderData);
+      const duration = Date.now() - startTime;
+
+      console.log(`✅ Order created successfully in ${duration}ms`);
+      console.log(`   Order ID: ${order._id}`);
+      console.log(`   Created At: ${order.createdAt}`);
+
+      return order;
+    } catch (error) {
+      console.error('❌ Error creating order:', error.message);
+      if (error.name === 'ValidationError') {
+        console.error('🔍 Validation errors:', Object.keys(error.errors));
+      }
+      throw error;
+    }
   }
 
   /**
@@ -103,24 +144,48 @@ class StorageService {
    * Check storage service health
    */
   async healthCheck() {
+    console.log('🏥 Running storage health check...');
+    const startTime = Date.now();
+
     const health = {
       mongodb: false,
       cache: false,
       blob: false,
-      timestamp: new Date().toISOString()
+      timestamp: new Date().toISOString(),
+      details: {}
     };
 
+    // Test MongoDB
     try {
-      // Test MongoDB
-      await Order.findOne().limit(1);
+      console.log('🔍 Testing MongoDB connection...');
+      const testDoc = await Order.findOne().limit(1);
       health.mongodb = true;
+      health.details.mongodb = {
+        status: 'connected',
+        testQuery: 'successful',
+        sampleDocument: testDoc ? 'found' : 'empty_collection'
+      };
+      console.log('✅ MongoDB health check passed');
     } catch (error) {
-      console.error('MongoDB health check failed:', error);
+      console.error('❌ MongoDB health check failed:', error.message);
+      health.details.mongodb = {
+        status: 'failed',
+        error: error.message,
+        code: error.code
+      };
     }
 
     // KV and Blob are disabled
     health.cache = false;
     health.blob = false;
+    health.details.cache = { status: 'disabled', reason: 'MongoDB-only configuration' };
+    health.details.blob = { status: 'disabled', reason: 'MongoDB-only configuration' };
+
+    const duration = Date.now() - startTime;
+    console.log(`🏥 Health check completed in ${duration}ms`);
+    console.log(`   MongoDB: ${health.mongodb ? '✅ Connected' : '❌ Failed'}`);
+    console.log(`   Cache: ⚪ Disabled`);
+    console.log(`   Blob: ⚪ Disabled`);
 
     return health;
   }

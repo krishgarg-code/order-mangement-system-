@@ -5,6 +5,11 @@ import mongoose from 'mongoose';
 
 const router = express.Router();
 
+console.log('🛣️  Initializing Orders Routes...');
+console.log('   Storage: MongoDB Only');
+console.log('   Cache: Disabled');
+console.log('   Local Fallback: Disabled');
+
 // Error handler wrapper
 const asyncHandler = (fn) => (req, res, next) => {
   Promise.resolve(fn(req, res, next)).catch(next);
