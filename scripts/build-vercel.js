@@ -39,17 +39,19 @@ function runCommand(command, description, cwd = process.cwd()) {
 }
 
 async function main() {
-  log(`${colors.blue}🚀 Starting Vercel Build Process...${colors.reset}`);
-  
+  log(`${colors.blue}🚀 Starting Vercel Monorepo Build Process...${colors.reset}`);
+
   let success = true;
-  
+
   // Check if we're in the right directory
   if (!existsSync('package.json')) {
     log(`${colors.red}❌ Not in project root directory${colors.reset}`);
     process.exit(1);
   }
-  
-  // Install root dependencies first
+
+  log(`${colors.blue}📦 Detected monorepo structure with workspaces${colors.reset}`);
+
+  // Install root dependencies first (includes API dependencies)
   success = runCommand('npm install', 'Install root dependencies') && success;
   
   if (!success) {

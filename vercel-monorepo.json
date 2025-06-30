@@ -1,20 +1,18 @@
 {
+  "version": 2,
+  "name": "order-management-system",
   "buildCommand": "npm run build:vercel",
   "outputDirectory": "dist",
   "installCommand": "npm install",
+  "framework": null,
   "functions": {
     "api/index.js": {
-      "maxDuration": 30
-    },
-    "api/test.js": {
-      "maxDuration": 10
+      "maxDuration": 30,
+      "runtime": "nodejs18.x",
+      "memory": 1024
     }
   },
   "rewrites": [
-    {
-      "source": "/api/test",
-      "destination": "/api/test.js"
-    },
     {
       "source": "/api/(.*)",
       "destination": "/api/index.js"
@@ -42,5 +40,13 @@
         }
       ]
     }
-  ]
+  ],
+  "env": {
+    "NODE_ENV": "production"
+  },
+  "build": {
+    "env": {
+      "NODE_ENV": "production"
+    }
+  }
 }
