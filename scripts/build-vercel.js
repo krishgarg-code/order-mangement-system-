@@ -39,7 +39,7 @@ function runCommand(command, description, cwd = process.cwd()) {
 }
 
 async function main() {
-  log(`${colors.blue}🚀 Starting Vercel Monorepo Build Process...${colors.reset}`);
+  log(`${colors.blue}🚀 Starting Single-Service Vercel Build Process...${colors.reset}`);
 
   let success = true;
 
@@ -49,9 +49,9 @@ async function main() {
     process.exit(1);
   }
 
-  log(`${colors.blue}📦 Detected monorepo structure with workspaces${colors.reset}`);
+  log(`${colors.blue}📦 Building single Express server with static frontend${colors.reset}`);
 
-  // Install root dependencies first (includes API dependencies)
+  // Install root dependencies first
   success = runCommand('npm install', 'Install root dependencies') && success;
   
   if (!success) {
@@ -62,9 +62,6 @@ async function main() {
   // Install workspace dependencies
   success = runCommand('npm install --workspace=frontend', 'Install frontend dependencies') && success;
   success = runCommand('npm install --workspace=backend', 'Install backend dependencies') && success;
-
-  // API dependencies are now included in main package.json
-  // No separate installation needed
   
   if (!success) {
     log(`${colors.red}❌ Workspace dependency installation failed${colors.reset}`);
@@ -84,7 +81,7 @@ async function main() {
   
   // Build frontend
   success = runCommand('npm run build', 'Build frontend', path.join(process.cwd(), 'frontend')) && success;
-  
+
   // Check build output
   if (existsSync('frontend/dist/index.html')) {
     log(`${colors.green}✅ Frontend build output verified${colors.reset}`);
@@ -92,11 +89,25 @@ async function main() {
     log(`${colors.red}❌ Frontend build output missing${colors.reset}`);
     success = false;
   }
-  
+
+  // Copy frontend build to root dist directory for Vercel
   if (success) {
-    log(`\n${colors.green}🎉 Vercel build completed successfully!${colors.reset}`);
+    success = runCommand('cp -r frontend/dist/* dist/ || xcopy /E /I frontend\\dist\\* dist\\', 'Copy frontend to dist') && success;
+
+    // Verify the copy worked
+    if (existsSync('dist/index.html')) {
+      log(`${colors.green}✅ Frontend copied to dist directory${colors.reset}`);
+    } else {
+      log(`${colors.red}❌ Failed to copy frontend to dist directory${colors.reset}`);
+      success = false;
+    }
+  }
+
+  if (success) {
+    log(`\n${colors.green}🎉 Single-service build completed successfully!${colors.reset}`);
+    log(`${colors.green}📦 Backend will serve both API and static files${colors.reset}`);
   } else {
-    log(`\n${colors.red}❌ Vercel build failed${colors.reset}`);
+    log(`\n${colors.red}❌ Build failed${colors.reset}`);
     process.exit(1);
   }
 }

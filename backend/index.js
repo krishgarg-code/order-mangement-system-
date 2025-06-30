@@ -2,7 +2,7 @@ import express from 'express';
 import mongoose from 'mongoose';
 import cors from 'cors';
 import 'dotenv/config';
-import { readFileSync } from 'fs';
+import { readFileSync, existsSync } from 'fs';
 import { fileURLToPath } from 'url';
 import { dirname, join } from 'path';
 
@@ -96,6 +96,27 @@ app.use((req, res, next) => {
 });
 
 console.log('✅ Request logging middleware configured');
+
+// ==================== STATIC FILE SERVING ====================
+console.log('📁 Configuring static file serving...');
+
+// Determine the path to the built frontend files
+const frontendDistPath = process.env.VERCEL
+  ? join(__dirname, '..', 'dist')  // In Vercel, dist is at root level
+  : join(__dirname, '..', 'frontend', 'dist'); // Local development
+
+console.log(`📂 Frontend dist path: ${frontendDistPath}`);
+
+if (existsSync(frontendDistPath)) {
+  // Serve static files from the frontend build
+  app.use(express.static(frontendDistPath));
+  console.log('✅ Static file serving configured');
+  console.log(`   Serving from: ${frontendDistPath}`);
+} else {
+  console.log('⚠️  Frontend dist directory not found');
+  console.log(`   Expected path: ${frontendDistPath}`);
+  console.log('   Frontend will not be served (API only mode)');
+}
 
 // ==================== MONGODB CONNECTION ====================
 console.log('🗄️  Configuring MongoDB connection...');
@@ -271,31 +292,53 @@ console.log('🛣️  Configuring routes...');
 
 import orderRoutes from './routes/orders.js';
 
-// In Vercel, the /api prefix is handled by the rewrite rule
-// So we register routes without the /api prefix
-if (process.env.VERCEL) {
-  app.use('/orders', orderRoutes);
-  console.log('🔧 Vercel mode: Routes registered without /api prefix');
-} else {
-  app.use('/api/orders', orderRoutes);
-  console.log('🔧 Local mode: Routes registered with /api prefix');
-}
+// Always use /api prefix for consistency
+app.use('/api/orders', orderRoutes);
+console.log('✅ API routes configured with /api prefix');
 
 console.log('✅ Routes configured:');
 console.log('   GET  / - Health check');
+console.log('   GET  /api/orders - List orders');
+console.log('   POST /api/orders - Create order');
+console.log('   PUT  /api/orders/:id - Update order');
+console.log('   DELETE /api/orders/:id - Delete order');
+console.log('   GET  /api/orders/stats - Dashboard stats');
+console.log('   GET  /api/orders/health - Storage health');
+console.log('   GET  /api/orders/analytics - Order analytics');
+console.log('   GET  /api/orders/overdue - Overdue orders');
 
-const routePrefix = process.env.VERCEL ? '' : '/api';
-console.log(`   GET  ${routePrefix}/orders - List orders`);
-console.log(`   POST ${routePrefix}/orders - Create order`);
-console.log(`   PUT  ${routePrefix}/orders/:id - Update order`);
-console.log(`   DELETE ${routePrefix}/orders/:id - Delete order`);
-console.log(`   GET  ${routePrefix}/orders/stats - Dashboard stats`);
-console.log(`   GET  ${routePrefix}/orders/health - Storage health`);
-console.log(`   GET  ${routePrefix}/orders/analytics - Order analytics`);
-console.log(`   GET  ${routePrefix}/orders/overdue - Overdue orders`);
+// ==================== REACT APP CATCH-ALL ROUTE ====================
+// Serve React app for all non-API routes
+app.get('*', (req, res) => {
+  // Skip API routes
+  if (req.path.startsWith('/api/')) {
+    return res.status(404).json({
+      message: 'API route not found',
+      path: req.path,
+      method: req.method,
+      timestamp: new Date().toISOString()
+    });
+  }
+
+  // Serve React app
+  const indexPath = join(frontendDistPath, 'index.html');
+  if (existsSync(indexPath)) {
+    console.log(`📱 Serving React app for: ${req.path}`);
+    res.sendFile(indexPath);
+  } else {
+    console.log(`❌ React app index.html not found at: ${indexPath}`);
+    res.status(404).json({
+      message: 'Frontend not available',
+      path: req.path,
+      timestamp: new Date().toISOString()
+    });
+  }
+});
+
+console.log('✅ React app catch-all route configured');
 
 // ==================== ERROR HANDLING ====================
-// 404 handler
+// This should not be reached due to catch-all route above
 app.use((req, res) => {
   console.log('🚫 404 Not Found:');
   console.log(`   Method: ${req.method}`);
