@@ -1,13 +1,11 @@
 {
-  "version": 2,
   "buildCommand": "npm install && npm run build:frontend",
   "outputDirectory": "frontend/dist",
   "installCommand": "npm install",
   "framework": "vite",
   "functions": {
     "api/index.js": {
-      "maxDuration": 30,
-      "runtime": "nodejs18.x"
+      "maxDuration": 30
     }
   },
   "rewrites": [
