@@ -1,5 +1,9 @@
 
 {
+  "buildCommand": "npm run build:vercel",
+  "outputDirectory": "dist",
+  "installCommand": "npm install",
+  "framework": null,
   "version": 2,
   "builds": [
     {
