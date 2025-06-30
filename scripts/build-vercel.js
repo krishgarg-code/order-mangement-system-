@@ -90,8 +90,17 @@ async function main() {
     success = false;
   }
 
-  // Copy frontend build to root dist directory for Vercel
+  // Create/clean dist directory and copy frontend build
   if (success) {
+    // Remove existing dist directory if it exists
+    if (existsSync('dist')) {
+      success = runCommand('rm -rf dist || rmdir /s /q dist', 'Clean existing dist directory') && success;
+    }
+
+    // Create new dist directory
+    success = runCommand('mkdir dist', 'Create dist directory') && success;
+
+    // Copy frontend build to dist directory
     success = runCommand('cp -r frontend/dist/* dist/ || xcopy /E /I frontend\\dist\\* dist\\', 'Copy frontend to dist') && success;
 
     // Verify the copy worked
