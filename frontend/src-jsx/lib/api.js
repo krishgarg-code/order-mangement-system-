@@ -1,17 +1,17 @@
-const API_URL = import.meta.env.VITE_API_URL || (import.meta.env.PROD ? '/api' : 'http://localhost:3000/api');
+const API_URL = import.meta.env.VITE_API_URL || (import.meta.env.PROD ? 'https://cs-backend.vercel.app/api' : 'http://localhost:3000/api');
 
 export const api = {
   // Get all orders
   getOrders: async () => {
     try {
-      const response = await fetch(`${import.meta.env.VITE_API_URL}/orders`);
+      const response = await fetch(`${API_URL}/orders`);
       const data = await response.json();
       if (!response.ok) {
         console.error('Error fetching orders:', data.message || 'Failed to fetch orders');
         throw new Error(data.message || 'Failed to fetch orders');
       }
-      // Return the orders array from the paginated response
-      return data.orders || [];
+      // Return the orders array directly (backend returns array, not paginated object)
+      return data || [];
     } catch (error) {
       console.error('Error fetching orders:', error);
       throw error;

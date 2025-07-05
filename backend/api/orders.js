@@ -5,26 +5,28 @@ if (!process.env.MONGODB_URI) {
   throw new Error("MONGODB_URI not defined in environment variables");
 }
 
-// Order Schema
+// Order Schema - Updated to match frontend expectations
 const orderSchema = new mongoose.Schema({
-  customerName: { type: String, required: true },
-  email: { type: String, required: true },
-  phone: { type: String, required: true },
-  address: { type: String, required: true },
-  items: [{
-    name: { type: String, required: true },
-    quantity: { type: Number, required: true },
-    price: { type: Number, required: true }
-  }],
-  totalAmount: { type: Number, required: true },
-  status: { 
-    type: String, 
-    enum: ['pending', 'processing', 'shipped', 'delivered', 'cancelled'],
-    default: 'pending'
-  },
+  orderNumber: { type: String, required: true },
+  companyName: { type: String, required: true },
+  broker: { type: String },
+  quantity: { type: Number, default: 1 },
   orderDate: { type: Date, default: Date.now },
-  deliveryDate: { type: Date },
-  notes: { type: String }
+  expectedDelivery: { type: Date },
+  notes: { type: String },
+  rolls: [{
+    rollNumber: { type: String },
+    hardness: { type: String, required: true },
+    machining: { type: String },
+    rollDescription: { type: String },
+    dimensions: { type: String },
+    status: { 
+      type: String, 
+      enum: ['Pending', 'casting', 'annealing', 'machining', 'bearing/wobler', 'dispached'],
+      default: 'Pending'
+    },
+    grade: { type: String }
+  }]
 }, {
   timestamps: true
 });
@@ -88,7 +90,31 @@ export default async function handler(req, res) {
       return res.status(201).json(saved);
     }
 
-    res.setHeader('Allow', ['GET', 'POST']);
+    if (req.method === 'PUT') {
+      const { id } = req.query;
+      if (!id) {
+        return res.status(400).json({ message: 'Order ID is required' });
+      }
+      const updatedOrder = await Order.findByIdAndUpdate(id, req.body, { new: true });
+      if (!updatedOrder) {
+        return res.status(404).json({ message: 'Order not found' });
+      }
+      return res.status(200).json(updatedOrder);
+    }
+
+    if (req.method === 'DELETE') {
+      const { id } = req.query;
+      if (!id) {
+        return res.status(400).json({ message: 'Order ID is required' });
+      }
+      const deletedOrder = await Order.findByIdAndDelete(id);
+      if (!deletedOrder) {
+        return res.status(404).json({ message: 'Order not found' });
+      }
+      return res.status(200).json({ message: 'Order deleted successfully' });
+    }
+
+    res.setHeader('Allow', ['GET', 'POST', 'PUT', 'DELETE']);
     res.status(405).json({ message: `Method ${req.method} not allowed` });
   } catch (err) {
     console.error('❌ Orders API error:', err);

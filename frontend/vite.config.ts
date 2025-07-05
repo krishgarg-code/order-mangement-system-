@@ -9,7 +9,7 @@ export default defineConfig(({ mode }) => ({
     port: 8080,
     proxy: {
       '/api': {
-        target: process.env.VITE_API_URL || 'http://localhost:3000',
+        target: process.env.VITE_API_URL || 'https://cs-backend.vercel.app/api',
         changeOrigin: true,
         secure: false,
         rewrite: (path) => path.replace(/^\/api/, '/api'),
@@ -43,5 +43,8 @@ export default defineConfig(({ mode }) => ({
   },
   define: {
     __APP_VERSION__: JSON.stringify(process.env.npm_package_version),
+    'import.meta.env.VITE_API_URL': JSON.stringify(
+      process.env.VITE_API_URL || 'https://cs-backend.vercel.app/api'
+    ),
   },
 }));
