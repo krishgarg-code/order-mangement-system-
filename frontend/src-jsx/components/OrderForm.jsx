@@ -12,6 +12,8 @@ import {
 } from "@/components/ui/select";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 
+const LAST_DIMENSIONS_KEY = "lastDimensionsFor2Rolls";
+
 function generateOrderNumber() {
   return `CS-${Date.now()}-${Math.floor(Math.random() * 1000)}`;
 }
@@ -37,6 +39,7 @@ export const OrderForm = ({ order, onSubmit, onCancel }) => {
       },
     ],
   });
+  const [showSuggestion, setShowSuggestion] = useState({});
 
   useEffect(() => {
     if (order) {
@@ -64,6 +67,30 @@ export const OrderForm = ({ order, onSubmit, onCancel }) => {
       setFormData((prev) => ({ ...prev, orderNumber: generateOrderNumber() }));
     }
   }, [order]);
+
+  useEffect(() => {
+    if (formData.quantity === 2) {
+      const saved = localStorage.getItem(LAST_DIMENSIONS_KEY);
+      if (saved) {
+        try {
+          const lastDims = JSON.parse(saved);
+          setFormData((prev) => {
+            if (
+              prev.rolls.length === 2 &&
+              prev.rolls[0].dimensions === "" &&
+              prev.rolls[1].dimensions === ""
+            ) {
+              const rolls = [...prev.rolls];
+              rolls[0].dimensions = lastDims[0] || "";
+              rolls[1].dimensions = lastDims[1] || "";
+              return { ...prev, rolls };
+            }
+            return prev;
+          });
+        } catch {}
+      }
+    }
+  }, [formData.quantity]);
 
   const handleSubmit = (e) => {
     e.preventDefault();
@@ -110,6 +137,15 @@ export const OrderForm = ({ order, onSubmit, onCancel }) => {
       status: roll.status || 'Pending',
       grade: roll.grade || ''
     }));
+
+    // Save last dimensions for 2 rolls
+    if (formattedData.rolls.length === 2) {
+      const dims = [
+        formattedData.rolls[0].dimensions,
+        formattedData.rolls[1].dimensions,
+      ];
+      localStorage.setItem(LAST_DIMENSIONS_KEY, JSON.stringify(dims));
+    }
 
     console.log('Submitting order data:', formattedData);
     onSubmit(formattedData);
@@ -336,7 +372,7 @@ export const OrderForm = ({ order, onSubmit, onCancel }) => {
                   </div>
                 </div>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
-                  <div>
+                  <div style={{ position: 'relative' }}>
                     <Label>Dimensions</Label>
                     <Input
                       value={roll.dimensions}
@@ -345,8 +381,44 @@ export const OrderForm = ({ order, onSubmit, onCancel }) => {
                         rolls[idx].dimensions = e.target.value;
                         setFormData({ ...formData, rolls });
                       }}
+                      onFocus={() => {
+                        setShowSuggestion((prev) => ({ ...prev, [idx]: true }));
+                      }}
+                      onBlur={() => {
+                        setTimeout(() => setShowSuggestion((prev) => ({ ...prev, [idx]: false })), 150);
+                      }}
                       required
                     />
+                    {/* Suggestion dropdown for rolls after the first */}
+                    {idx > 0 &&
+                      showSuggestion[idx] &&
+                      formData.rolls[0].dimensions &&
+                      !roll.dimensions && (
+                        <div
+                          style={{
+                            position: 'absolute',
+                            top: '100%',
+                            left: 0,
+                            zIndex: 10,
+                            background: 'white',
+                            border: '1px solid #ccc',
+                            borderRadius: '0.5rem',
+                            width: '100%',
+                            cursor: 'pointer',
+                            padding: '0.5rem',
+                            fontWeight: 'lighter'
+                            
+                          }}
+                          onMouseDown={() => {
+                            const rolls = [...formData.rolls];
+                            rolls[idx].dimensions = formData.rolls[0].dimensions;
+                            setFormData({ ...formData, rolls });
+                            setShowSuggestion((prev) => ({ ...prev, [idx]: false }));
+                          }}
+                        >
+                           <b>{formData.rolls[0].dimensions}</b>
+                        </div>
+                      )}
                   </div>
                   <div>
                     <Label>Status</Label>
