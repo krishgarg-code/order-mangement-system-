@@ -1,10 +1,23 @@
 const API_URL = import.meta.env.VITE_API_URL || (import.meta.env.PROD ? 'https://cs-backend.vercel.app/api' : 'http://localhost:3000/api');
 
+// Debug logging
+console.log('🔍 API_URL configured as:', API_URL);
+console.log('🔍 import.meta.env.VITE_API_URL:', import.meta.env.VITE_API_URL);
+console.log('🔍 import.meta.env.PROD:', import.meta.env.PROD);
+console.log('🔍 import.meta.env.MODE:', import.meta.env.MODE);
+
 export const api = {
   // Get all orders
   getOrders: async () => {
     try {
+      console.log('🔍 Fetching orders from:', `${API_URL}/orders`);
+      console.log('🔍 Environment:', import.meta.env.MODE);
+      console.log('🔍 VITE_API_URL:', import.meta.env.VITE_API_URL);
+      
       const response = await fetch(`${API_URL}/orders`);
+      console.log('🔍 Response status:', response.status);
+      console.log('🔍 Response headers:', response.headers);
+      
       const data = await response.json();
       if (!response.ok) {
         console.error('Error fetching orders:', data.message || 'Failed to fetch orders');

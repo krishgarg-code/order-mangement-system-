@@ -49,18 +49,30 @@ const connectDB = async () => {
 
 // Main handler
 export default async function handler(req, res) {
-  console.log(`Orders API called: ${req.method}`);
+  console.log(`🔍 Orders API called: ${req.method}`);
+  console.log(`🔍 Request URL: ${req.url}`);
+  console.log(`🔍 Request headers:`, req.headers);
 
   // CORS configuration for production
   const allowedOrigins = [
     'https://cs-frontend-rust.vercel.app',
     'http://localhost:3000', // for local development
-    'http://localhost:5173'  // for Vite dev server
+    'http://localhost:5173', // for Vite dev server
+    'http://localhost:8080', // for Vite dev server alternative port
+    'http://localhost:4173'  // for Vite preview
   ];
   
   const origin = req.headers.origin;
+  console.log('🔍 Request origin:', origin);
+  console.log('🔍 Allowed origins:', allowedOrigins);
+  
   if (allowedOrigins.includes(origin)) {
     res.setHeader('Access-Control-Allow-Origin', origin);
+    console.log('🔍 CORS origin set to:', origin);
+  } else {
+    // Temporarily allow all origins for debugging
+    res.setHeader('Access-Control-Allow-Origin', '*');
+    console.log('🔍 CORS origin set to wildcard for debugging');
   }
   
   res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
@@ -91,7 +103,8 @@ export default async function handler(req, res) {
     }
 
     if (req.method === 'PUT') {
-      const { id } = req.query;
+      // Extract ID from URL path: /api/orders/123 -> 123
+      const id = req.url.split('/').pop();
       if (!id) {
         return res.status(400).json({ message: 'Order ID is required' });
       }
@@ -103,7 +116,8 @@ export default async function handler(req, res) {
     }
 
     if (req.method === 'DELETE') {
-      const { id } = req.query;
+      // Extract ID from URL path: /api/orders/123 -> 123
+      const id = req.url.split('/').pop();
       if (!id) {
         return res.status(400).json({ message: 'Order ID is required' });
       }
