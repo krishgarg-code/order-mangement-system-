@@ -1,6 +1,4 @@
-// Vercel API route for health check
-const mongoose = require('mongoose');
-require('dotenv/config');
+import mongoose from 'mongoose';
 
 // Connect to MongoDB
 const connectDB = async () => {
@@ -38,7 +36,6 @@ export default async function handler(req, res) {
   let dbError = null;
 
   try {
-    // Connect to database
     await connectDB();
     mongoStatus = mongoose.connection.readyState === 1 ? 'connected' : 'disconnected';
     mongoHost = mongoose.connection.host || 'unknown';
@@ -63,6 +60,5 @@ export default async function handler(req, res) {
   };
 
   console.log('🏥 Health check response:', healthData);
-
   res.status(200).json(healthData);
 }
