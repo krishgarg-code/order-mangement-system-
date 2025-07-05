@@ -49,9 +49,21 @@ const connectDB = async () => {
 export default async function handler(req, res) {
   console.log(`Orders API called: ${req.method}`);
 
-  res.setHeader('Access-Control-Allow-Origin', '*');
+  // CORS configuration for production
+  const allowedOrigins = [
+    'https://cs-frontend-rust.vercel.app',
+    'http://localhost:3000', // for local development
+    'http://localhost:5173'  // for Vite dev server
+  ];
+  
+  const origin = req.headers.origin;
+  if (allowedOrigins.includes(origin)) {
+    res.setHeader('Access-Control-Allow-Origin', origin);
+  }
+  
   res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
   res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
+  res.setHeader('Access-Control-Allow-Credentials', 'true');
 
   if (req.method === 'OPTIONS') {
     return res.status(200).end();
