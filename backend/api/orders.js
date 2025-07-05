@@ -1,6 +1,9 @@
-// Vercel API route for orders
-const mongoose = require('mongoose');
-require('dotenv/config');
+import mongoose from 'mongoose';
+
+// Load env variables
+if (!process.env.MONGODB_URI) {
+  throw new Error("MONGODB_URI not defined in environment variables");
+}
 
 // Order Schema
 const orderSchema = new mongoose.Schema({
@@ -26,7 +29,7 @@ const orderSchema = new mongoose.Schema({
   timestamps: true
 });
 
-// Create model (handle existing model)
+// Create model safely
 let Order;
 try {
   Order = mongoose.model('Order');
@@ -34,71 +37,49 @@ try {
   Order = mongoose.model('Order', orderSchema);
 }
 
-// Connect to MongoDB
+// DB connection
 const connectDB = async () => {
   if (mongoose.connection.readyState === 0) {
-    try {
-      if (!process.env.MONGODB_URI) {
-        throw new Error('MONGODB_URI environment variable is not set');
-      }
-      await mongoose.connect(process.env.MONGODB_URI);
-      console.log('✅ MongoDB connected');
-    } catch (error) {
-      console.error('❌ MongoDB connection error:', error);
-      throw error; // Re-throw to handle in the main handler
-    }
+    await mongoose.connect(process.env.MONGODB_URI);
+    console.log('✅ MongoDB connected');
   }
 };
 
+// Main handler
 export default async function handler(req, res) {
-  console.log(`📊 Orders API called: ${req.method} ${req.url}`);
+  console.log(`📊 Orders API called: ${req.method}`);
 
-  // Set CORS headers
   res.setHeader('Access-Control-Allow-Origin', '*');
   res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
   res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
 
-  // Handle preflight requests
   if (req.method === 'OPTIONS') {
-    res.status(200).end();
-    return;
+    return res.status(200).end();
   }
 
   try {
-    // Connect to database
     await connectDB();
-  } catch (dbError) {
-    console.error('❌ Database connection failed:', dbError);
-    return res.status(500).json({
-      message: 'Database connection failed',
-      error: dbError.message
-    });
+  } catch (err) {
+    console.error('❌ DB connect error:', err);
+    return res.status(500).json({ message: 'DB connection failed', error: err.message });
   }
 
   try {
-    switch (req.method) {
-      case 'GET':
-        const orders = await Order.find().sort({ createdAt: -1 });
-        console.log(`📋 Retrieved ${orders.length} orders`);
-        res.status(200).json(orders);
-        break;
-        
-      case 'POST':
-        const newOrder = new Order(req.body);
-        const savedOrder = await newOrder.save();
-        console.log(`✅ Created new order: ${savedOrder._id}`);
-        res.status(201).json(savedOrder);
-        break;
-        
-      default:
-        res.setHeader('Allow', ['GET', 'POST']);
-        res.status(405).json({ message: `Method ${req.method} not allowed` });
+    if (req.method === 'GET') {
+      const orders = await Order.find().sort({ createdAt: -1 });
+      return res.status(200).json(orders);
     }
-  } catch (error) {
-    console.error('❌ Orders API error:', error);
-    res.status(500).json({ 
-      message: 'Internal server error',
-      error: error.message 
-    });
+
+    if (req.method === 'POST') {
+      const newOrder = new Order(req.body);
+      const saved = await newOrder.save();
+      return res.status(201).json(saved);
+    }
+
+    res.setHeader('Allow', ['GET', 'POST']);
+    res.status(405).json({ message: `Method ${req.method} not allowed` });
+  } catch (err) {
+    console.error('❌ Orders API error:', err);
+    res.status(500).json({ message: 'Internal server error', error: err.message });
   }
 }
