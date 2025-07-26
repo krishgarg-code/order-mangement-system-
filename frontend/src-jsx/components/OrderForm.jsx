@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+ import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -201,8 +201,8 @@ export const OrderForm = ({ order, onSubmit, onCancel }) => {
       <CardHeader>
         <CardTitle>{order ? "Edit Order" : "Add New Order"}</CardTitle>
       </CardHeader>
-      <CardContent>
-        <form onSubmit={handleSubmit} className="space-y-6">
+      <CardContent className="relative pb-24"> {/* Add padding bottom for fixed buttons */}
+        <form onSubmit={handleSubmit} className="space-y-6" id="order-form">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
               <Label htmlFor="orderNumber">Order Number (auto-generated)</Label>
@@ -287,7 +287,7 @@ export const OrderForm = ({ order, onSubmit, onCancel }) => {
           </div>
 
           {/* Mini forms for each roll */}
-          <div className="space-y-6 mt-6 max-h-[70vh] overflow-y-auto pr-2 border rounded-md bg-white">
+          <div className="space-y-6 mt-6 max-h-[400px] overflow-y-auto pr-2 border rounded-md bg-white">
             {formData.rolls.map((roll, idx) => (
               <div key={idx} className="border rounded-lg p-4 bg-gray-50">
                 <div className="font-semibold mb-2">Roll {idx + 1}</div>
@@ -447,7 +447,8 @@ export const OrderForm = ({ order, onSubmit, onCancel }) => {
             ))}
           </div>
 
-          <div className="flex space-x-4">
+          {/* Button group directly below the rolls scroll area, aligned right */}
+          <div className="flex space-x-4 justify-end pt-4">
             <Button type="submit" className="bg-orange-600 hover:bg-orange-700">
               {order ? "Update Order" : "Create Order"}
             </Button>
